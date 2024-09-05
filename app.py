@@ -1,4 +1,3 @@
-from os import system
 from langchain_ollama import ChatOllama
 import chromadb
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -12,6 +11,7 @@ print("\t3. Finance")
 
 
 def initialize_llm():
+    """Initialize the llm"""
     llm = ChatOllama(
         model="llama3.1:8b",
         temperature=0.5,
@@ -20,13 +20,15 @@ def initialize_llm():
 
 
 def get_question():
+    """Ask the question"""
     user_query = input("\nQuestion?\n\n")
     return user_query
 
 
 def get_system_prompt(results, team):
+    """Ask the system prompt"""
     return (
-        """
+        f"""
     You are a helpful assistant.
     You are going to answer only based on the knowledge I'm providing to you. 
     You don't use your internal knowledge and you don't make thins up.
@@ -41,6 +43,7 @@ def get_system_prompt(results, team):
 
 
 def get_llm_answer(llm, system_prompt, question):
+    """Get the answer"""
     message = [
         SystemMessage(content=system_prompt),
         HumanMessage(content=question),
@@ -54,6 +57,7 @@ def get_llm_answer(llm, system_prompt, question):
 
 
 def answer_operations_questions():
+    """Answer operations"""
     llm = initialize_llm()
     collection = chroma_client.get_or_create_collection(name="operations")
     question = ""
@@ -69,6 +73,7 @@ def answer_operations_questions():
 
 
 def answer_humanresources_questions():
+    """Answer human resources questions"""
     llm = initialize_llm()
     collection = chroma_client.get_or_create_collection(name="humanresources")
     question = ""
@@ -84,6 +89,7 @@ def answer_humanresources_questions():
 
 
 def answer_finance_questions():
+    """Answer questions from the financial"""
     llm = initialize_llm()
     collection = chroma_client.get_or_create_collection(name="finance")
     question = ""
