@@ -1,7 +1,14 @@
 from langchain_ollama import ChatOllama
 import chromadb
-from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.messages import HumanMessage
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+import warnings
+
+warnings.filterwarnings("ignore")
+
 
 print("\tWelcome to MSG!!!!")
 print("We will answer all your questions")
@@ -42,21 +49,33 @@ def get_system_prompt(results, team):
     )
 
 
-def get_llm_answer(llm, system_prompt, question):
+def get_llm_answer(llm, system_prompt, question, session_id):
     """Get the answer"""
-    message = [
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=question),
-    ]
 
-    parser = StrOutputParser()
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                system_prompt,
+            ),
+            MessagesPlaceholder(variable_name="messages"),
+        ]
+    )
 
-    print("\n\n---------------------\n\n")
+    chain = prompt | llm
 
-    print(parser.invoke(llm.invoke(message)))
+    with_message_history = RunnableWithMessageHistory(
+        chain, get_session_history, input_messages_key="messages"
+    )
+    for r in with_message_history.stream(
+        {"messages": [HumanMessage(content=question)]},
+        config={"configurable": {"session_id": session_id}},
+    ):
+        print(r.content, end="", flush=True)
+    print()
 
 
-def answer_operations_questions():
+def answer_operations_questions(session_id):
     """Answer operations"""
     llm = initialize_llm()
     collection = chroma_client.get_or_create_collection(name="operations")
@@ -69,10 +88,10 @@ def answer_operations_questions():
         else:
             results = collection.query(query_texts=[question], n_results=1)
             system_prompt = get_system_prompt(results, "Operations Team")
-            get_llm_answer(llm, system_prompt, question)
+            get_llm_answer(llm, system_prompt, question, session_id)
 
 
-def answer_humanresources_questions():
+def answer_humanresources_questions(session_id):
     """Answer human resources questions"""
     llm = initialize_llm()
     collection = chroma_client.get_or_create_collection(name="humanresources")
@@ -85,10 +104,10 @@ def answer_humanresources_questions():
         else:
             results = collection.query(query_texts=[question], n_results=1)
             system_prompt = get_system_prompt(results, "HR Team")
-            get_llm_answer(llm, system_prompt, question)
+            get_llm_answer(llm, system_prompt, question, session_id)
 
 
-def answer_finance_questions():
+def answer_finance_questions(session_id):
     """Answer questions from the financial"""
     llm = initialize_llm()
     collection = chroma_client.get_or_create_collection(name="finance")
@@ -101,17 +120,27 @@ def answer_finance_questions():
         else:
             results = collection.query(query_texts=[question], n_results=1)
             system_prompt = get_system_prompt(results, "Finance Team")
-            get_llm_answer(llm, system_prompt, question)
+            get_llm_answer(llm, system_prompt, question, session_id)
+
+
+store = {}
+
+
+def get_session_history(session_id: str):
+    """Get the session history"""
+    if session_id not in store:
+        store[session_id] = InMemoryChatMessageHistory()
+    return store[session_id]
 
 
 CHROMA_PATH = r"chroma_db"
 chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
 
-
+sessionid = "abc123"
 choice = input("Please choose your field: ")
 if choice == "1":
-    answer_humanresources_questions()
+    answer_humanresources_questions(sessionid)
 elif choice == "2":
-    answer_operations_questions()
+    answer_operations_questions(sessionid)
 elif choice == "3":
-    answer_finance_questions()
+    answer_finance_questions(sessionid)

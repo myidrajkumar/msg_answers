@@ -4,6 +4,10 @@ import chromadb
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+import warnings
+
+warnings.filterwarnings("ignore")
+
 CHROMA_PATH = r"chroma_db"
 ROOT_DIR = r"data"
 
