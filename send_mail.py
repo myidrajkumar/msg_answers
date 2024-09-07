@@ -8,7 +8,10 @@ def send_email(sender, receiver, subject, message):
     """Sending email"""
     server = smtplib.SMTP("localhost", port=25)
 
-    mail_message = MIMEText(message, "plain")
+    msg_body = "Conversation History:\n"
+    msg_body += str(message)
+
+    mail_message = MIMEText(msg_body, "plain")
     mail_message["Subject"] = subject
     mail_message["From"] = sender
     mail_message["To"] = receiver

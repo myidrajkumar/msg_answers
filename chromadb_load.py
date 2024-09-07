@@ -17,7 +17,6 @@ for subdir, dirs, files in os.walk(ROOT_DIR):
     for directory in dirs:
         sub_directory = os.path.join(subdir, directory)
         collection_name = directory.lower()
-        # print("Collection Name", collection_name)
 
         chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
 
@@ -27,7 +26,7 @@ for subdir, dirs, files in os.walk(ROOT_DIR):
         raw_documents = loader.load()
 
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=300,
+            chunk_size=250,
             chunk_overlap=100,
             length_function=len,
             is_separator_regex=False,

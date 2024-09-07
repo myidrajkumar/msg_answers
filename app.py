@@ -11,6 +11,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_ollama import ChatOllama
 
+from finanace_answers import answer_finance_questions
 from send_mail import send_email
 
 
@@ -35,7 +36,6 @@ def initialize_llm():
     """Initialize the llm"""
     llm = ChatOllama(
         model="llama3.1:latest",
-        temperature=0.5,
     )
     return llm
 
@@ -122,7 +122,10 @@ def is_exit_field(question):
 
 def build_system_prompt(question, team, collection):
     """Construct System Prompt"""
-    results = collection.query(query_texts=[question], n_results=1)
+    results = collection.query(
+        query_texts=[question],
+        n_results=1,
+    )
     return get_system_prompt(results, team)
 
 
@@ -201,34 +204,6 @@ def answer_humanresources_questions(session_id, field):
             break
 
 
-def answer_finance_questions(session_id, field):
-    """Answer questions from the financial"""
-    llm = initialize_llm()
-    collection = chroma_client.get_or_create_collection(name="finance")
-
-    question = ""
-    while question != "q":
-        if is_exit_field(question):
-            break
-
-        sys_prompt = build_system_prompt(question, "Finance Team", collection)
-        is_no_information = get_llm_answer(llm, sys_prompt, question, session_id, field)
-
-        if is_no_information:
-            is_send_mail = is_raise_concern(field)
-            if not is_send_mail:
-                continue
-
-            send_email_and_notify(
-                "admin@techinterrupt.com",
-                "finance@techinterrupt.com",
-                "Finance Query",
-                "Hello",
-                field,
-            )
-            break
-
-
 store = {}
 
 
@@ -251,7 +226,7 @@ while choosen_field != "4":
     elif choosen_field == "2":
         answer_operations_questions(sessionid, "IT")
     elif choosen_field == "3":
-        answer_finance_questions(sessionid, "Finance")
+        answer_finance_questions(sessionid)
     elif choosen_field == "4":
         hour = datetime.datetime.now().hour
         greeting = "Have a nice day!" if hour < 20 else "Good night!"
