@@ -1,10 +1,11 @@
+"""Loaded Chroma DB"""
+
 import os
+import warnings
 
 import chromadb
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-import warnings
 
 warnings.filterwarnings("ignore")
 

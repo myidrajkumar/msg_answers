@@ -2,3 +2,5 @@ venv
 .env
 data
 chroma_db
+.venv
+__pycache__
