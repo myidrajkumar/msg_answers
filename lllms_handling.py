@@ -40,8 +40,10 @@ def get_llm_answer(llm, system_prompt, question, session_id, field):
         {"messages": [HumanMessage(content=question)]},
         config={"configurable": {"session_id": session_id}},
     )
-    content_data = {'content': response.content}
-    content_json = json.dumps(content_data)
-    return content_json
+
+    return response.content
+    # content_data = {'content': response.content}
+    # content_json = json.dumps(content_data)
+    # return content_json
 
     # return "Requested question is out of my knowledge" in response.content

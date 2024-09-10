@@ -29,14 +29,12 @@ def send_email_and_notify(sender, reciver, subject, message):
     print("New chat session has been initiated")
 
 
-def answer_finance_questions(session_id):
+def answer_finance_questions(session_id, question):
     """Answer questions from the financial"""
 
     collection = chroma_client.get_collection(name=DEPARTMENT.lower())
 
-    question = ""
     while question != "q":
-        question = get_question(question)
         if question is None:
             break
 
@@ -45,15 +43,18 @@ def answer_finance_questions(session_id):
             llm, sys_prompt, question, session_id, DEPARTMENT
         )
 
-        if is_no_information:
-            is_send_mail = is_raise_concern(DEPARTMENT)
-            if not is_send_mail:
-                continue
+        return is_no_information
 
-            send_email_and_notify(
-                "admin@techinterrupt.com",
-                "finance@techinterrupt.com",
-                "Finance Query",
-                get_session_history(session_id),
-            )
-            break
+        # # Check if the question is not related to finance
+        # if is_no_information:
+        #     is_send_mail = is_raise_concern(DEPARTMENT)
+        #     if not is_send_mail:
+        #         continue
+
+        #     send_email_and_notify(
+        #         "admin@techinterrupt.com",
+        #         "finance@techinterrupt.com",
+        #         "Finance Query",
+        #         get_session_history(session_id),
+        #     )
+        #     break

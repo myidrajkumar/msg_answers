@@ -6,7 +6,6 @@
     <title>Assistant Bot</title>
     <!-- Bootstrap CDN -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Link to external CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="bg-light">
@@ -18,7 +17,12 @@
         </div>
 
         <div class="chat-box flex-grow-1 p-3 overflow-auto mt-5" id="chat-box">
-
+            <!-- Initial welcome message -->
+            <div class="message bot-message">
+                <div class="bubble">
+                    Welcome to MSG!!!!<br>We will answer all your questions<br><br>1. Human Resources<br>2. Operations<br>3. Finance<br><br>Please choose your field:
+                </div>
+            </div>
         </div>
 
         <div class="loading justify-content-center mb-3 d-none" id="loading">
@@ -28,18 +32,13 @@
         </div>
 
         <div class="chat-input d-flex p-3 bg-light fixed-bottom">
-            <input type="text" id="question" class="form-control mr-2" placeholder="Ask your question...">
-            <button class="btn btn-primary" onclick="submitQuestion()">Ask</button>
+            <input type="text" id="question" class="form-control mr-2" placeholder="Enter your choice..." autofocus>
+            <button class="btn btn-primary" onclick="submitField()">Submit</button>
         </div>
     </div>
 </div>
 
-
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
-</body>
-</html>
