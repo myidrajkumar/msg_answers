@@ -4,6 +4,7 @@ from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_ollama import ChatOllama
+import json
 
 from vector_stores import get_session_history
 
@@ -34,13 +35,13 @@ def get_llm_answer(llm, system_prompt, question, session_id, field):
     with_message_history = RunnableWithMessageHistory(
         chain, get_session_history, input_messages_key="messages"
     )
-    print(f"{field}: ", end="")
 
     response = with_message_history.invoke(
         {"messages": [HumanMessage(content=question)]},
         config={"configurable": {"session_id": session_id}},
     )
-    print(response.content, flush=True)
-    print()
+    content_data = {'content': response.content}
+    content_json = json.dumps(content_data)
+    return content_json
 
-    return "Requested question is out of my knowledge" in response.content
+    # return "Requested question is out of my knowledge" in response.content

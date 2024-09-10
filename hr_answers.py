@@ -29,14 +29,13 @@ def send_email_and_notify(sender, reciver, subject, message):
     print("New chat session has been initiated")
 
 
-def answer_hr_questions(session_id):
+def answer_hr_questions(session_id, question):
     """Answer questions from the HR"""
 
     collection = chroma_client.get_collection(name="humanresources")
 
-    question = ""
+
     while question != "q":
-        question = get_question(question)
         if question is None:
             break
 
@@ -45,15 +44,17 @@ def answer_hr_questions(session_id):
             llm, sys_prompt, question, session_id, DEPARTMENT
         )
 
-        if is_no_information:
-            is_send_mail = is_raise_concern(DEPARTMENT)
-            if not is_send_mail:
-                continue
+        return is_no_information
 
-            send_email_and_notify(
-                "admin@techinterrupt.com",
-                "hr@techinterrupt.com",
-                "HR Query",
-                get_session_history(session_id),
-            )
-            break
+        # if is_no_information:
+        #     is_send_mail = is_raise_concern(DEPARTMENT)
+        #     if not is_send_mail:
+        #         continue
+
+        #     send_email_and_notify(
+        #         "admin@techinterrupt.com",
+        #         "hr@techinterrupt.com",
+        #         "HR Query",
+        #         get_session_history(session_id),
+        #     )
+        #     break
