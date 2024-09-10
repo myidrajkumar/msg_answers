@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistant Bot</title>
+    <title>MSG Assistant Bot</title>
     <!-- Bootstrap CDN -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -12,12 +12,11 @@
 
 <div class="container-fluid d-flex flex-column min-vh-100">
     <div class="chat-container bg-white shadow rounded d-flex flex-column flex-grow-1">
-        <div class="chat-header bg-primary text-white p-3 fixed-top">
-            Assistant Bot
+        <div class="chat-header text-white p-3 fixed-top">
+            MSG Assistant Bot
         </div>
 
         <div class="chat-box flex-grow-1 p-3 overflow-auto mt-5" id="chat-box">
-            <!-- Initial welcome message -->
             <div class="message bot-message">
                 <div class="bubble">
                     Welcome to MSG!!!!<br>We will answer all your questions<br><br>1. Human Resources<br>2. Operations<br>3. Finance<br><br>Please choose your field:
@@ -32,9 +31,11 @@
         </div>
 
         <div class="chat-input d-flex p-3 bg-light fixed-bottom">
-            <input type="text" id="question" class="form-control mr-2" placeholder="Enter your choice..." autofocus>
-            <button class="btn btn-primary" onclick="submitField()">Submit</button>
-        </div>
+            <input type="text" id="question" class="form-control mr-2" placeholder="Enter your choice..." autofocus 
+            onkeydown="if(event.key === 'Enter') submitField()">
+            <button class="btn btn-secondary mr-2" id="endChatButton" onclick="endChat()">End Chat</button>
+            <button class="btn btn-primary" id="submitButton" onclick="submitField()">Submit</button>
+        </div>        
     </div>
 </div>
 

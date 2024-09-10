@@ -23,7 +23,7 @@ function handleFieldSelection(choice) {
         '2': 'Operations',
         '3': 'Finance',
     };
-    
+
     selectedField = choice;
     addMessage('bot-message', `You selected ${fields[choice]}. Now ask your question.`);
     document.getElementById('question').placeholder = 'Ask your question...';
@@ -74,5 +74,7 @@ function addMessage(className, message) {
 
 function showLoading(isLoading) {
     const loading = document.getElementById('loading');
+    const submitButton = document.getElementById('submitButton');
     loading.classList.toggle('d-none', !isLoading);
+    submitButton.disabled = isLoading;
 }

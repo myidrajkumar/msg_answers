@@ -13,10 +13,10 @@ def index():
 @app.route('/ask', methods=['POST'])
 def ask():
     data = request.json
-    print(data)
+
     field = data.get('field')  
     question = data.get('question')
-
+    
     if field == '1':  
         answer = answer_hr_questions(uuid.uuid4(), question)
     elif field == '2':  
