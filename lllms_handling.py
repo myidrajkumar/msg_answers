@@ -12,12 +12,12 @@ from vector_stores import get_session_history
 def initialize_llm():
     """Initialize the llm"""
     llm = ChatOllama(
-        model="llama3.1:8b",
+        model="llama3.1:latest",
     )
     return llm
 
 
-def get_llm_answer(llm, system_prompt, question, session_id, field):
+def get_llm_answer(llm, system_prompt, question, session_id):
     """Get the answer"""
 
     prompt = ChatPromptTemplate.from_messages(
@@ -42,8 +42,3 @@ def get_llm_answer(llm, system_prompt, question, session_id, field):
     )
 
     return response.content
-    # content_data = {'content': response.content}
-    # content_json = json.dumps(content_data)
-    # return content_json
-
-    return "out of my knowledge" in response.content.lower()
