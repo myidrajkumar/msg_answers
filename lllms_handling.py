@@ -11,7 +11,7 @@ from vector_stores import get_session_history
 def initialize_llm():
     """Initialize the llm"""
     llm = ChatOllama(
-        model="llama3.1:latest",
+        model="llama3.1:8b",
     )
     return llm
 
@@ -43,4 +43,4 @@ def get_llm_answer(llm, system_prompt, question, session_id, field):
     print(response.content, flush=True)
     print()
 
-    return "Requested question is out of my knowledge" in response.content
+    return "out of my knowledge" in response.content.lower()
