@@ -19,11 +19,17 @@
         <div class="chat-box flex-grow-1 p-3 overflow-auto mt-5" id="chat-box">
             <div class="message bot-message">
                 <div class="bubble">
-                    Welcome to MSG!!!!<br>We will answer all your questions<br><br>1. Human Resources<br>2. Operations<br>3. Finance<br><br>Please choose your field:
+                    Welcome to MSG!!!!<br>We will answer all your questions<br><br>
+                    Please choose your field:
+                    <div class="button-container mt-3">
+                        <button class="btn btn-primary" onclick="handleFieldSelection('1')">Human Resources</button>
+                        <button class="btn btn-primary" onclick="handleFieldSelection('2')">Operations</button>
+                        <button class="btn btn-primary" onclick="handleFieldSelection('3')">Finance</button>
+                    </div>
                 </div>
             </div>
         </div>
-
+        
         <div class="loading justify-content-center mb-3 d-none" id="loading">
             <div class="spinner-border text-primary" role="status">
                 <span class="sr-only">Loading...</span>
@@ -31,7 +37,7 @@
         </div>
 
         <div class="chat-input d-flex p-3 bg-light fixed-bottom">
-            <input type="text" id="question" class="form-control mr-2" placeholder="Enter your choice..." autofocus 
+            <input type="text" id="question" class="form-control mr-2" placeholder="Select your choice..." autofocus 
             onkeydown="if(event.key === 'Enter') submitField()">
             <button class="btn btn-secondary mr-2" id="endChatButton" onclick="endChat()">End Chat</button>
             <button class="btn btn-primary" id="submitButton" onclick="submitField()">Submit</button>

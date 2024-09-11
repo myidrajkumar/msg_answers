@@ -1,17 +1,17 @@
 let selectedField = null;
+let sessionId = null;
 
 function submitField() {
     const questionInput = document.getElementById('question');
     const question = questionInput.value.trim();
 
     if (!selectedField) {
-        if (['1', '2', '3'].includes(question)) {
+        if (['Human Resource', 'Operation', 'Finance'].includes(question)) {
             handleFieldSelection(question);
         } else {
-            addMessage('bot-message', 'Invalid selection. Please choose 1, 2, or 3.');
+            addMessage('bot-message', 'Invalid selection. Please choose proper Department');
         }
     } else {
-        console.log('Selected field:', selectedField);
         submitQuestion(question);
     }
     document.getElementById('question').value = '';
@@ -23,15 +23,27 @@ function handleFieldSelection(choice) {
         '2': 'Operations',
         '3': 'Finance',
     };
-
     selectedField = choice;
+    let sessionId = localStorage.getItem('session_id');
+    if (!sessionId) {
+        fetch('/token', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        })
+        .then(response => response.json())
+        .then(data => {
+            sessionId = data.token
+            localStorage.setItem('session_id', sessionId);
+        })
+        .catch(error => {
+            addMessage('bot-message', 'An error occurred. Please try again.');
+        });
+    }
     addMessage('bot-message', `You selected ${fields[choice]}. Now ask your question.`);
     document.getElementById('question').placeholder = 'Ask your question...';
 }
 
 function submitQuestion(question) {
-
-    console.log(question)
 
     if (!question) return;
 
@@ -42,7 +54,7 @@ function submitQuestion(question) {
     fetch('/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field: selectedField, question: question })
+        body: JSON.stringify({ field: selectedField, question: question , token:sessionId })
     })
     .then(response => response.json())
     .then(data => {
@@ -77,4 +89,16 @@ function showLoading(isLoading) {
     const submitButton = document.getElementById('submitButton');
     loading.classList.toggle('d-none', !isLoading);
     submitButton.disabled = isLoading;
+}
+
+function endChat(){
+    sessionId = null;
+    selectedField = null;
+    localStorage.setItem('session_id', '');
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) {
+        const messageDivs = chatBox.querySelectorAll('div.message:not(:first-child)');
+        messageDivs.forEach(div => div.remove());
+    }
+    document.getElementById('question').value = '';
 }
