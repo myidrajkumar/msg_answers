@@ -5,6 +5,7 @@ import uuid
 from flask import Flask, jsonify, render_template, request
 
 from answers_handling import answer_questions
+from load_chroma import load_documents_if_not_present
 from send_mail import send_email
 from vector_stores import get_session_history
 
@@ -67,4 +68,5 @@ def raise_concern():
 
 
 if __name__ == "__main__":
+    load_documents_if_not_present()
     app.run(debug=True)
