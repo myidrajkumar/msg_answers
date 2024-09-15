@@ -1,20 +1,50 @@
 """Prompt Formats"""
 
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-def get_system_prompt(results):
+
+def get_contextual_system_prompt():
     """Ask the system prompt"""
-    return (
-        """
-You must answer only based on the data given below.
-Do NOT use your internal knowledge.
-When you are providing answer, no mention of 'text is provided' or 'according to data' as such.
-Just provide the answer from the the knowledge I'm providing.
-If you don't know the answer,
-just say: Requested question is out of my knowledge.
---------------------
-The data:
-"""
-        + str(results["documents"])
-        + """
-"""
+    return """
+Answer the user's questions based on the below context.
+Have a friendly tone and Just provide the answer.
+Do not use your external knowledge.
+Do not say 'According to the context' or 'Based on the context'.
+
+If the context doesn't contain any relevant information to the question,
+don't make something up and just say "This is out of my knowledge":
+
+<context>
+{context}
+</context>
+            """
+
+
+def get_question_prompt():
+    """The prompt for questions"""
+    return ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                get_contextual_system_prompt(),
+            ),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+        ]
     )
+
+
+def get_retriever_prompt():
+    """The prompt for Chroma DB"""
+    retriever_prompt = ChatPromptTemplate.from_messages(
+        [
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+            (
+                "human",
+                "Given the above conversation, generate a search query to look up in order to get information relevant to the conversation",
+            ),
+        ]
+    )
+
+    return retriever_prompt

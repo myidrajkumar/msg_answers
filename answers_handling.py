@@ -1,24 +1,29 @@
-import chromadb
+"""Answer the questions"""
 
-from send_mail import send_email
-from vector_stores import build_system_prompt, get_session_history
-from lllms_handling import get_llm_answer, initialize_llm
-
-from questions_handling import get_question, is_raise_concern
+from chromadb_load import finance_db, hr_db, it_db
+from vector_stores import get_retrieval_chain_for_db, get_session_history
 
 
-CHROMA_PATH = r"chroma_db"
-chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
+def answer_questions(question, department, session_id):
+    """Answer the questions"""
 
-llm = initialize_llm()
+    conversation_history = get_session_history(session_id)
+    print("conversation:", conversation_history)
+    department_db = get_db_name(department)
+    retrieval_chain = get_retrieval_chain_for_db(department_db)
 
-def answer_questions(session_id, question, department):
+    response = retrieval_chain.invoke(
+        {"input": question, "chat_history": conversation_history}
+    )
 
-    collection = chroma_client.get_collection(name=department.lower().replace(' ', ''))
+    return response["answer"]
 
-    while question:
-        sys_prompt = build_system_prompt(question, collection)
-        information = get_llm_answer(
-            llm, sys_prompt, question, session_id)
 
-        return information
+def get_db_name(department):
+    """Get Collection Name"""
+    if department == "Human Resources":
+        return hr_db
+    elif department == "Operations":
+        return it_db
+    elif department == "Finance":
+        return finance_db

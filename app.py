@@ -5,9 +5,9 @@ import uuid
 from flask import Flask, jsonify, render_template, request
 
 from answers_handling import answer_questions
-from load_chroma import load_documents_if_not_present
+from chromadb_load import load_documents_if_not_present
 from send_mail import send_email
-from vector_stores import get_session_history
+from vector_stores import get_session_history, store_session_history
 
 app = Flask(__name__)
 
@@ -22,6 +22,7 @@ def index():
 def get_token():
     """Retrieve Token"""
     session_id = str(uuid.uuid4())
+    print("Conversation is started with session", session_id)
     return jsonify({"token": session_id})
 
 
@@ -32,10 +33,12 @@ def ask():
     field = data.get("field")
     question = data.get("question")
     session_id = data.get("token")
+    print("session_id", session_id)
     department = data.get("department")
 
     if field in ["1", "2", "3"]:
-        answer = answer_questions(session_id, question, department)
+        answer = answer_questions(question, department, session_id)
+        store_session_history(session_id, question, answer)
     else:
         answer = "Invalid field selected."
 
