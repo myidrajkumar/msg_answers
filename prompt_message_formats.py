@@ -8,6 +8,7 @@ def get_contextual_system_prompt():
     return """
 Answer the user's questions based on the below context.
 Have a friendly tone and Just provide the answer.
+Please provide the answers in HTML format with appropriate tags
 Do not use your external knowledge.
 Do not say 'According to the context' or 'Based on the context'.
 

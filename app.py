@@ -43,7 +43,7 @@ def ask():
         answer = "Invalid field selected."
 
     # speak_answer(answer)
-    threading.Thread(target=speak_answer, kwargs={"answer": answer}).start()
+    # threading.Thread(target=speak_answer, kwargs={"answer": answer}).start()
 
     return jsonify({"content": answer})
 
