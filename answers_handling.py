@@ -8,7 +8,6 @@ def answer_questions(question, department, session_id):
     """Answer the questions"""
 
     conversation_history = get_session_history(session_id)
-    print("conversation:", conversation_history)
     department_db = get_db_name(department)
     retrieval_chain = get_retrieval_chain_for_db(department_db)
 

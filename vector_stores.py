@@ -25,7 +25,6 @@ def get_session_history(session_id: str):
 def store_session_history(session_id: str, question: str, answer: str):
     """Store the session history"""
     conversation_history = user_conversations.get(session_id, [])
-    print("Conversation:", conversation_history)
     conversation_history.append(HumanMessage(content=question))
     conversation_history.append(AIMessage(content=answer))
     user_conversations[session_id] = conversation_history

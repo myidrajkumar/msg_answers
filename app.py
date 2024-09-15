@@ -1,7 +1,9 @@
 """Main Application"""
 
+import threading
 import uuid
 
+import pyttsx3
 from flask import Flask, jsonify, render_template, request
 
 from answers_handling import answer_questions
@@ -22,7 +24,6 @@ def index():
 def get_token():
     """Retrieve Token"""
     session_id = str(uuid.uuid4())
-    print("Conversation is started with session", session_id)
     return jsonify({"token": session_id})
 
 
@@ -33,7 +34,6 @@ def ask():
     field = data.get("field")
     question = data.get("question")
     session_id = data.get("token")
-    print("session_id", session_id)
     department = data.get("department")
 
     if field in ["1", "2", "3"]:
@@ -41,6 +41,9 @@ def ask():
         store_session_history(session_id, question, answer)
     else:
         answer = "Invalid field selected."
+
+    # speak_answer(answer)
+    threading.Thread(target=speak_answer, kwargs={"answer": answer}).start()
 
     return jsonify({"content": answer})
 
@@ -68,6 +71,13 @@ def raise_concern():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"success": False, "message": "An error occurred"}), 500
+
+
+def speak_answer(answer):
+    """Speak the answer"""
+    engine = pyttsx3.init()
+    engine.say(answer)
+    engine.runAndWait()
 
 
 if __name__ == "__main__":
