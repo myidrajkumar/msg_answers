@@ -1,13 +1,16 @@
-let selectedField = null;
+let selectedDepartment = localStorage.getItem('selected_department') || null;
 let sessionId = null;
-let selectedDepartment = null;
+
+if (selectedDepartment) {
+    enableInput();
+    addBotMessage(`Welcome back! You are chatting with <strong>${selectedDepartment}</strong>. How can I assist you today?`);
+}
 
 function submitField() {
     const questionInput = document.getElementById('question');
     const question = questionInput.value.trim();
 
-    if (!selectedField) {
-        handleFieldSelection(question);
+    if (!selectedDepartment) {
     } else {
         submitQuestion(question);
     }
@@ -15,23 +18,23 @@ function submitField() {
 }
 
 function handleFieldSelection(choice) {
-    const fields = {
+    const departments = {
         '1': 'Human Resources',
-        '2': 'ITD',
-        '3': 'Finance',
-        'Human Resources': 'Human Resources',
-        'ITD': 'ITD',
-        'Finance': 'Finance'
+        '2': 'IT',
+        '3': 'Finance'
     };
-    const fieldKey = choice in fields ? choice : null;
 
-    if (!fieldKey) {
+    selectedDepartment = departments[choice] || choice;
+
+    if (!selectedDepartment) {
         addBotMessage('Invalid selection. Please choose a proper department.');
         return;
     }
 
-    selectedField = fieldKey;
-    selectedDepartment = fields[fieldKey];
+    localStorage.setItem('selected_department', selectedDepartment);
+
+    enableInput();
+
     sessionId = localStorage.getItem('session_id');
     if (!sessionId) {
         fetch('/token', {
@@ -44,11 +47,11 @@ function handleFieldSelection(choice) {
                 localStorage.setItem('session_id', sessionId);
             })
             .catch(error => {
-                addBotMessage('An error occurred. Please try again.');
+                addBotMessage('An error occurred while obtaining session token. Please try again.');
             });
     }
-    addBotMessage(`You selected <strong>${selectedDepartment}</strong>. Now, please ask your question.`);
-    document.getElementById('question').placeholder = 'Ask your question...';
+
+    addBotMessage(`You selected <strong>${selectedDepartment}</strong>. How can I assist you today?`);
 }
 
 function submitQuestion(question) {
@@ -56,136 +59,151 @@ function submitQuestion(question) {
 
     addUserMessage(question);
 
-    // Show typing indicator
-    showBotTyping(true);
+    disableInput(); 
+    showTypingIndicator();
 
     fetch('/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field: selectedField, question: question, token: sessionId, department: selectedDepartment })
+        body: JSON.stringify({ department: selectedDepartment, question: question, token: sessionId })
     })
         .then(response => response.json())
         .then(data => {
-            console.log(data);
-            // Hide typing indicator
-            showBotTyping(false);
+            hideTypingIndicator();
 
             if (data.content.toLowerCase().includes("out of my knowledge")) {
                 addConcernMessage(selectedDepartment);
             } else {
                 addBotMessage(data.content);
+                enableInput(); 
             }
         })
         .catch(error => {
-            showBotTyping(false);
-            addBotMessage('An error occurred. Please try again.');
+            hideTypingIndicator();
+            addBotMessage('An error occurred while processing your request. Please try again.');
+            enableInput(); 
         });
 }
 
 function addUserMessage(message) {
-    const chatBox = document.getElementById('chat-box');
+    const chatMessages = document.getElementById('chat-messages');
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message user-message';
 
-    const iconDiv = document.createElement('div');
-    iconDiv.className = 'icon';
-    iconDiv.innerHTML = '<i class="fas fa-user"></i>';
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
 
-    const bubbleDiv = document.createElement('div');
-    bubbleDiv.className = 'bubble';
-    bubbleDiv.textContent = message;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = message;
 
-    messageDiv.appendChild(bubbleDiv);
-    messageDiv.appendChild(iconDiv);
-    chatBox.appendChild(messageDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    messageContent.appendChild(bubble);
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.innerHTML = '<i class="fas fa-user"></i>';
+
+    messageDiv.appendChild(messageContent);
+    messageDiv.appendChild(avatar);
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function addBotMessage(messageContent) {
-    const chatBox = document.getElementById('chat-box');
+    const chatMessages = document.getElementById('chat-messages');
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message bot-message';
 
-    const iconDiv = document.createElement('div');
-    iconDiv.className = 'icon';
-    iconDiv.innerHTML = '<i class="fas fa-robot"></i>';
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.innerHTML = '<i class="fas fa-robot"></i>';
 
-    const bubbleDiv = document.createElement('div');
-    bubbleDiv.className = 'bubble';
-    bubbleDiv.innerHTML = messageContent;
+    const messageContentDiv = document.createElement('div');
+    messageContentDiv.className = 'message-content';
 
-    messageDiv.appendChild(iconDiv);
-    messageDiv.appendChild(bubbleDiv);
-    chatBox.appendChild(messageDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = messageContent;
+
+    messageContentDiv.appendChild(bubble);
+
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(messageContentDiv);
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function showBotTyping(isTyping) {
-    const botTyping = document.getElementById('bot-typing');
-    botTyping.classList.toggle('d-none', !isTyping);
-    if (isTyping) {
-        botTyping.scrollIntoView({ behavior: 'smooth' });
+function enableInput() {
+    const questionInput = document.getElementById('question');
+    const submitButton = document.getElementById('submitButton');
+    questionInput.disabled = false;
+    submitButton.disabled = false;
+    questionInput.placeholder = 'Type a message...';
+    questionInput.focus();
+}
+
+function disableInput() {
+    const questionInput = document.getElementById('question');
+    const submitButton = document.getElementById('submitButton');
+    questionInput.disabled = true;
+    submitButton.disabled = true;
+}
+
+function showTypingIndicator() {
+    const chatMessages = document.getElementById('chat-messages');
+
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot-message typing';
+    typingDiv.id = 'typing-indicator';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.innerHTML = '<i class="fas fa-robot"></i>';
+
+    const messageContentDiv = document.createElement('div');
+    messageContentDiv.className = 'message-content';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'typing-indicator';
+    typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+
+    bubble.appendChild(typingIndicator);
+    messageContentDiv.appendChild(bubble);
+    typingDiv.appendChild(avatar);
+    typingDiv.appendChild(messageContentDiv);
+    chatMessages.appendChild(typingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
     }
 }
 
-function showLoading(isLoading) {
-    const loadingOverlay = document.getElementById('loading');
-    loadingOverlay.classList.toggle('d-none', !isLoading);
-}
-
-function endChat() {
-    showLoading(true);
-
-    // Simulate a delay for ending chat
-    setTimeout(() => {
-        selectedField = null;
-        selectedDepartment = null;
-        sessionId = null;
-        localStorage.removeItem('session_id');
-        document.getElementById('question').placeholder = 'Select your choice...';
-
-        const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = ''; // Clear chat box
-
-        // Re-add the initial bot message
-        addBotMessage(`
-            <p>Welcome back to MSG! Please choose your field:</p>
-            <div class="button-container">
-                <button class="btn btn-option" onclick="handleFieldSelection('1')">
-                    <i class="fas fa-users"></i> Human Resources
-                </button>
-                <button class="btn btn-option" onclick="handleFieldSelection('2')">
-                    <i class="fas fa-desktop"></i> ITD
-                </button>
-                <button class="btn btn-option" onclick="handleFieldSelection('3')">
-                    <i class="fas fa-calculator"></i> Finance
-                </button>
-            </div>
-        `);
-
-        showLoading(false);
-    }, 3000); // Adjust delay as needed
-}
-
-function addConcernMessage(selectedDepartment) {
+function addConcernMessage(department) {
     addBotMessage(`
-        <p>As there is no data available, we could send your question to the <strong>${selectedDepartment}</strong> team.</p>
+        <p>As there is no data available, we could send your question to the <strong>${department}</strong> team.</p>
         <p>Your entire conversation history will be shared. As the conversation is submitted, this chat session will be closed.</p>
         <p>Do you want to raise a concern?</p>
-        <div class="button-container">
-            <button class="btn btn-option" onclick="raiseConcern(true)">
-                <i class="fas fa-check"></i> Yes
-            </button>
-            <button class="btn btn-option" onclick="raiseConcern(false)">
-                <i class="fas fa-times"></i> No
-            </button>
+        <div class="options">
+            <button class="btn btn-option" onclick="raiseConcern(true)">Yes</button>
+            <button class="btn btn-option" onclick="raiseConcern(false)">No</button>
         </div>
     `);
 }
 
 function raiseConcern(request) {
     if (request) {
-        showLoading(true);
+        disableInput();
+        showExitSpinner();
+
         fetch('/raiseconcernmail', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -197,25 +215,72 @@ function raiseConcern(request) {
         })
             .then(response => response.json())
             .then(data => {
-                showLoading(false);
+                hideExitSpinner();
+
                 if (data.success) {
-                    addBotMessage(`Mail has been sent to the <strong>${selectedDepartment}</strong> team. Thank you.<br> A new chat session has been initiated.`);
+                    addBotMessage(`An email has been sent to the <strong>${selectedDepartment}</strong> team. Thank you. A new chat session has been initiated.`);
                     setTimeout(endChat, 3000);
                 } else {
-                    addBotMessage('There was an issue raising your concern.');
-                    setTimeout(endChat, 3000);
+                    addBotMessage('There was an issue raising your concern. Please try again.');
+                    enableInput();
                 }
             })
             .catch(error => {
-                showLoading(false);
-                addBotMessage('An error occurred. Please try again.');
-                setTimeout(endChat, 3000);
+                hideExitSpinner();
+                addBotMessage('An error occurred while processing your request. Please try again.');
+                enableInput();
             });
     } else {
         addBotMessage('You can continue the chat.');
+        enableInput();
     }
+}
+
+function endChat() {
+    showExitSpinner();
+
+    setTimeout(() => {
+        selectedDepartment = null;
+        sessionId = null;
+        localStorage.removeItem('session_id');
+        localStorage.removeItem('selected_department');
+        disableInput();
+        document.getElementById('question').placeholder = 'Select a department to start...';
+
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.innerHTML = '';
+
+        addBotMessage(`
+            <p>Welcome back! Please select your department:</p>
+            <div class="options">
+                <button class="btn btn-option" onclick="handleFieldSelection('1')">Human Resources</button>
+                <button class="btn btn-option" onclick="handleFieldSelection('2')">ITD</button>
+                <button class="btn btn-option" onclick="handleFieldSelection('3')">Finance</button>
+            </div>
+        `);
+
+        hideExitSpinner();
+    }, 3000);
+}
+
+function showExitSpinner() {
+    const loadingOverlay = document.getElementById('loading');
+    loadingOverlay.classList.remove('d-none');
+}
+
+function hideExitSpinner() {
+    const loadingOverlay = document.getElementById('loading');
+    loadingOverlay.classList.add('d-none');
 }
 
 function toggleTheme() {
     document.body.classList.toggle('dark-mode');
+    const themeIcon = document.getElementById('theme-icon');
+    if (document.body.classList.contains('dark-mode')) {
+        themeIcon.classList.remove('fa-moon');
+        themeIcon.classList.add('fa-sun');
+    } else {
+        themeIcon.classList.remove('fa-sun');
+        themeIcon.classList.add('fa-moon');
+    }
 }

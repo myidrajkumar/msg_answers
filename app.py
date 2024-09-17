@@ -30,16 +30,16 @@ def get_token():
 def ask():
     """Asking the question"""
     data = request.json
-    field = data.get("field")
     question = data.get("question")
     session_id = data.get("token")
     department = data.get("department")
 
-    if field in ["1", "2", "3"]:
+    if department in ["Human Resources", "2", "3"]:
         print(question, department, session_id)
         answer = answer_questions(question, department, session_id)
         store_session_history(session_id, question, answer)
     else:
+        print(question, department, session_id)
         answer = "Invalid field selected."
 
     # speak_answer(answer)
