@@ -1,30 +1,50 @@
 let selectedDepartment = localStorage.getItem('selected_department') || null;
 let sessionId = null;
 
-if (selectedDepartment) {
-    enableInput();
-    addBotMessage(`Welcome back! You are chatting with <strong>${selectedDepartment}</strong>. How can I assist you today?`);
-}
+const questionInput = document.getElementById('question');
+const submitButton = document.getElementById('submitButton');
+const chatMessages = document.getElementById('chat-messages');
+const loadingOverlay = document.getElementById('loading');
+const themeIcon = document.getElementById('theme-icon');
 
-function submitField() {
-    const questionInput = document.getElementById('question');
-    const question = questionInput.value.trim();
+document.addEventListener('DOMContentLoaded', initializeChat);
+submitButton.addEventListener('click', submitField);
+questionInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') submitField();
+});
 
-    if (!selectedDepartment) {
+async function initializeChat() {
+    if (selectedDepartment) {
+        enableInput();
+        addBotMessage(`Welcome back! You are chatting with <strong>${selectedDepartment}</strong>. How can I assist you today?`);
+        await getSessionId();
     } else {
-        submitQuestion(question);
+        disableInput();
     }
-    questionInput.value = '';
 }
 
-function handleFieldSelection(choice) {
+async function getSessionId() {
+    sessionId = localStorage.getItem('session_id');
+    if (!sessionId) {
+        try {
+            const response = await fetch('/token');
+            const data = await response.json();
+            sessionId = data.token;
+            localStorage.setItem('session_id', sessionId);
+        } catch (error) {
+            addBotMessage('An error occurred while obtaining session token. Please try again.');
+        }
+    }
+}
+
+async function handleFieldSelection(choice) {
     const departments = {
         '1': 'Human Resources',
         '2': 'IT',
-        '3': 'Finance'
+        '3': 'Finance',
     };
 
-    selectedDepartment = departments[choice] || choice;
+    selectedDepartment = departments[choice] || null;
 
     if (!selectedDepartment) {
         addBotMessage('Invalid selection. Please choose a proper department.');
@@ -32,204 +52,166 @@ function handleFieldSelection(choice) {
     }
 
     localStorage.setItem('selected_department', selectedDepartment);
-
     enableInput();
-
-    sessionId = localStorage.getItem('session_id');
-    if (!sessionId) {
-        fetch('/token', {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-        })
-            .then(response => response.json())
-            .then(data => {
-                sessionId = data.token;
-                localStorage.setItem('session_id', sessionId);
-            })
-            .catch(error => {
-                addBotMessage('An error occurred while obtaining session token. Please try again.');
-            });
-    }
-
+    await getSessionId();
     addBotMessage(`You selected <strong>${selectedDepartment}</strong>. How can I assist you today?`);
 }
 
-function submitQuestion(question) {
-    if (!question) return;
+async function submitField() {
+    const question = questionInput.value.trim();
+    if (!selectedDepartment || !question) return;
 
     addUserMessage(question);
-
-    disableInput(); 
+    questionInput.value = '';
+    disableInput();
     showTypingIndicator();
 
-    fetch('/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ department: selectedDepartment, question: question, token: sessionId })
-    })
-        .then(response => response.json())
-        .then(data => {
-            hideTypingIndicator();
-
-            if (data.content.toLowerCase().includes("out of my knowledge")) {
-                addConcernMessage(selectedDepartment);
-            } else {
-                addBotMessage(data.content);
-                enableInput(); 
-            }
-        })
-        .catch(error => {
-            hideTypingIndicator();
-            addBotMessage('An error occurred while processing your request. Please try again.');
-            enableInput(); 
+    try {
+        const response = await fetch('/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                department: selectedDepartment,
+                question: question,
+                token: sessionId,
+            }),
         });
+
+        const data = await response.json();
+        hideTypingIndicator();
+
+        if (data.content.toLowerCase().includes('out of my knowledge')) {
+            addConcernMessage();
+        } else {
+            addBotMessage(data.content);
+            enableInput();
+        }
+    } catch (error) {
+        hideTypingIndicator();
+        addBotMessage('An error occurred while processing your request. Please try again.');
+        enableInput();
+    }
 }
 
 function addUserMessage(message) {
-    const chatMessages = document.getElementById('chat-messages');
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message user-message';
-
-    const messageContent = document.createElement('div');
-    messageContent.className = 'message-content';
-
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.textContent = message;
-
-    messageContent.appendChild(bubble);
-
-    const avatar = document.createElement('div');
-    avatar.className = 'avatar';
-    avatar.innerHTML = '<i class="fas fa-user"></i>';
-
-    messageDiv.appendChild(messageContent);
-    messageDiv.appendChild(avatar);
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    const messageDiv = createMessageElement('user-message', '<i class="fas fa-user"></i>', message);
+    appendMessageToChat(messageDiv);
 }
 
 function addBotMessage(messageContent) {
-    const chatMessages = document.getElementById('chat-messages');
+    const messageDiv = createMessageElement('bot-message', '<i class="fas fa-robot"></i>', messageContent, true);
+    appendMessageToChat(messageDiv);
+}
 
+function createMessageElement(messageType, avatarIcon, messageContent, isHTML = false) {
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'message bot-message';
+    messageDiv.className = `message ${messageType}`;
 
     const avatar = document.createElement('div');
     avatar.className = 'avatar';
-    avatar.innerHTML = '<i class="fas fa-robot"></i>';
+    avatar.innerHTML = avatarIcon;
 
     const messageContentDiv = document.createElement('div');
     messageContentDiv.className = 'message-content';
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    bubble.innerHTML = messageContent;
+    bubble[isHTML ? 'innerHTML' : 'textContent'] = messageContent;
 
     messageContentDiv.appendChild(bubble);
 
-    messageDiv.appendChild(avatar);
-    messageDiv.appendChild(messageContentDiv);
+    if (messageType === 'user-message') {
+        messageDiv.appendChild(messageContentDiv);
+        messageDiv.appendChild(avatar);
+    } else {
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContentDiv);
+    }
+
+    return messageDiv;
+}
+
+function appendMessageToChat(messageDiv) {
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function enableInput() {
-    const questionInput = document.getElementById('question');
-    const submitButton = document.getElementById('submitButton');
     questionInput.disabled = false;
     submitButton.disabled = false;
     questionInput.placeholder = 'Type a message...';
+    questionInput.classList.remove('disabled');
+    submitButton.classList.remove('disabled');
     questionInput.focus();
 }
 
 function disableInput() {
-    const questionInput = document.getElementById('question');
-    const submitButton = document.getElementById('submitButton');
     questionInput.disabled = true;
     submitButton.disabled = true;
+    questionInput.classList.add('disabled');
+    submitButton.classList.add('disabled');
 }
 
 function showTypingIndicator() {
-    const chatMessages = document.getElementById('chat-messages');
-
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message bot-message typing';
+    const typingIndicatorHTML = `
+        <div class="typing-indicator">
+            <span></span><span></span><span></span>
+        </div>
+    `;
+    const typingDiv = createMessageElement('bot-message typing', '<i class="fas fa-robot"></i>', typingIndicatorHTML, true);
     typingDiv.id = 'typing-indicator';
-
-    const avatar = document.createElement('div');
-    avatar.className = 'avatar';
-    avatar.innerHTML = '<i class="fas fa-robot"></i>';
-
-    const messageContentDiv = document.createElement('div');
-    messageContentDiv.className = 'message-content';
-
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-
-    const typingIndicator = document.createElement('div');
-    typingIndicator.className = 'typing-indicator';
-    typingIndicator.innerHTML = '<span></span><span></span><span></span>';
-
-    bubble.appendChild(typingIndicator);
-    messageContentDiv.appendChild(bubble);
-    typingDiv.appendChild(avatar);
-    typingDiv.appendChild(messageContentDiv);
-    chatMessages.appendChild(typingDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    appendMessageToChat(typingDiv);
 }
 
 function hideTypingIndicator() {
     const typingIndicator = document.getElementById('typing-indicator');
-    if (typingIndicator) {
-        typingIndicator.remove();
-    }
+    if (typingIndicator) typingIndicator.remove();
 }
 
-function addConcernMessage(department) {
-    addBotMessage(`
-        <p>As there is no data available, we could send your question to the <strong>${department}</strong> team.</p>
+function addConcernMessage() {
+    const concernMessage = `
+        <p>As there is no data available, we could send your question to the <strong>${selectedDepartment}</strong> team.</p>
         <p>Your entire conversation history will be shared. As the conversation is submitted, this chat session will be closed.</p>
         <p>Do you want to raise a concern?</p>
         <div class="options">
             <button class="btn btn-option" onclick="raiseConcern(true)">Yes</button>
             <button class="btn btn-option" onclick="raiseConcern(false)">No</button>
         </div>
-    `);
+    `;
+    addBotMessage(concernMessage);
 }
 
-function raiseConcern(request) {
+async function raiseConcern(request) {
     if (request) {
         disableInput();
         showExitSpinner();
 
-        fetch('/raiseconcernmail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                department: selectedDepartment,
-                token: sessionId,
-                request: request
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                hideExitSpinner();
-
-                if (data.success) {
-                    addBotMessage(`An email has been sent to the <strong>${selectedDepartment}</strong> team. Thank you. A new chat session has been initiated.`);
-                    setTimeout(endChat, 3000);
-                } else {
-                    addBotMessage('There was an issue raising your concern. Please try again.');
-                    enableInput();
-                }
-            })
-            .catch(error => {
-                hideExitSpinner();
-                addBotMessage('An error occurred while processing your request. Please try again.');
-                enableInput();
+        try {
+            const response = await fetch('/raiseconcernmail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    department: selectedDepartment,
+                    token: sessionId,
+                    request: request,
+                }),
             });
+
+            const data = await response.json();
+            hideExitSpinner();
+
+            if (data.success) {
+                addBotMessage(`An email has been sent to the <strong>${selectedDepartment}</strong> team. Thank you. A new chat session has been initiated.`);
+                setTimeout(endChat, 3000);
+            } else {
+                addBotMessage('There was an issue raising your concern. Please try again.');
+                enableInput();
+            }
+        } catch (error) {
+            hideExitSpinner();
+            addBotMessage('An error occurred while processing your request. Please try again.');
+            enableInput();
+        }
     } else {
         addBotMessage('You can continue the chat.');
         enableInput();
@@ -245,42 +227,22 @@ function endChat() {
         localStorage.removeItem('session_id');
         localStorage.removeItem('selected_department');
         disableInput();
-        document.getElementById('question').placeholder = 'Select a department to start...';
-
-        const chatMessages = document.getElementById('chat-messages');
+        questionInput.placeholder = 'Select a department to start...';
         chatMessages.innerHTML = '';
-
-        addBotMessage(`
-            <p>Welcome back! Please select your department:</p>
-            <div class="options">
-                <button class="btn btn-option" onclick="handleFieldSelection('1')">Human Resources</button>
-                <button class="btn btn-option" onclick="handleFieldSelection('2')">ITD</button>
-                <button class="btn btn-option" onclick="handleFieldSelection('3')">Finance</button>
-            </div>
-        `);
-
         hideExitSpinner();
     }, 3000);
 }
 
 function showExitSpinner() {
-    const loadingOverlay = document.getElementById('loading');
     loadingOverlay.classList.remove('d-none');
 }
 
 function hideExitSpinner() {
-    const loadingOverlay = document.getElementById('loading');
     loadingOverlay.classList.add('d-none');
 }
 
 function toggleTheme() {
     document.body.classList.toggle('dark-mode');
-    const themeIcon = document.getElementById('theme-icon');
-    if (document.body.classList.contains('dark-mode')) {
-        themeIcon.classList.remove('fa-moon');
-        themeIcon.classList.add('fa-sun');
-    } else {
-        themeIcon.classList.remove('fa-sun');
-        themeIcon.classList.add('fa-moon');
-    }
+    themeIcon.classList.toggle('fa-moon');
+    themeIcon.classList.toggle('fa-sun');
 }
