@@ -1,51 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta Tags and Title -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSG Assistant Bot</title>
-    <!-- Bootstrap CDN -->
+    <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 </head>
-<body class="bg-light">
-
-<div class="container-fluid d-flex flex-column min-vh-100">
-    <div class="chat-container bg-white shadow rounded d-flex flex-column flex-grow-1">
-        <div class="chat-header text-white p-3 fixed-top">
-            MSG Assistant Bot
+<body>
+    <div class="container-fluid d-flex flex-column min-vh-100">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="header-content">
+                <h1>MSG Assistant Bot</h1>
+                <button class="btn btn-toggle-theme" onclick="toggleTheme()" aria-label="Toggle Theme">
+                    <i class="fas fa-adjust"></i>
+                </button>
+            </div>
         </div>
-
-        <div class="chat-box flex-grow-1 p-3 overflow-auto mt-5" id="chat-box">
+        <!-- Chat Box -->
+        <div class="chat-box" id="chat-box">
+            <!-- Initial Bot Message -->
             <div class="message bot-message">
+                <div class="icon">
+                    <i class="fas fa-robot"></i>
+                </div>
                 <div class="bubble">
-                    Welcome to MSG!!!!<br>We will answer all your questions<br><br>
-                    Please choose your field:
-                    <div class="button-container mt-3">
-                        <button class="btn btn-primary" onclick="handleFieldSelection('1')">Human Resources</button>
-                        <button class="btn btn-primary" onclick="handleFieldSelection('2')">Operations</button>
-                        <button class="btn btn-primary" onclick="handleFieldSelection('3')">Finance</button>
+                    <p>Welcome to MSG! We will answer all your questions.</p>
+                    <p>Please choose your field:</p>
+                    <div class="button-container">
+                        <button class="btn btn-option" onclick="handleFieldSelection('1')">
+                            <i class="fas fa-users"></i> Human Resources
+                        </button>
+                        <button class="btn btn-option" onclick="handleFieldSelection('2')">
+                            <i class="fas fa-desktop"></i> ITD
+                        </button>
+                        <button class="btn btn-option" onclick="handleFieldSelection('3')">
+                            <i class="fas fa-calculator"></i> Finance
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="loading justify-content-center mb-3 d-none" id="loading">
-            <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Loading...</span>
+        <!-- Loading Indicator for Bot Typing -->
+        <div class="bot-typing d-none" id="bot-typing">
+            <div class="message bot-message">
+                <div class="icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bubble typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
             </div>
         </div>
-
-        <div class="chat-input d-flex p-3 bg-light fixed-bottom">
-            <input type="text" id="question" class="form-control mr-2" placeholder="Select your choice..." autofocus 
+        <!-- Loading Overlay for End Chat -->
+        <div class="loading-overlay d-none" id="loading">
+            <div class="spinner">
+                <div class="spinner-inner"></div>
+            </div>
+        </div>
+        <!-- Chat Input -->
+        <div class="chat-input">
+            <input type="text" id="question" placeholder="Type your message..." autofocus 
             onkeydown="if(event.key === 'Enter') submitField()">
-            <button class="btn btn-secondary mr-2" id="endChatButton" onclick="endChat()">End Chat</button>
-            <button class="btn btn-primary" id="submitButton" onclick="submitField()">Submit</button>
+            <button class="btn btn-end-chat" id="endChatButton" onclick="endChat()" aria-label="End Chat">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+            <button class="btn btn-send" id="submitButton" onclick="submitField()" aria-label="Send Message">
+                <i class="fas fa-paper-plane"></i>
+            </button>
         </div>        
     </div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

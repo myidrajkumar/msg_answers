@@ -1,6 +1,5 @@
 """Main Application"""
 
-import threading
 import uuid
 
 import pyttsx3
@@ -37,6 +36,7 @@ def ask():
     department = data.get("department")
 
     if field in ["1", "2", "3"]:
+        print(question, department, session_id)
         answer = answer_questions(question, department, session_id)
         store_session_history(session_id, question, answer)
     else:
@@ -82,4 +82,4 @@ def speak_answer(answer):
 
 if __name__ == "__main__":
     load_documents_if_not_present()
-    app.run(debug=True)
+    app.run(debug=False)

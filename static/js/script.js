@@ -7,25 +7,31 @@ function submitField() {
     const question = questionInput.value.trim();
 
     if (!selectedField) {
-        if (['Human Resource', 'Operation', 'Finance'].includes(question)) {
-            handleFieldSelection(question);
-        } else {
-            addMessage('bot-message', 'Invalid selection. Please choose proper Department');
-        }
+        handleFieldSelection(question);
     } else {
         submitQuestion(question);
     }
-    document.getElementById('question').value = '';
+    questionInput.value = '';
 }
 
 function handleFieldSelection(choice) {
     const fields = {
         '1': 'Human Resources',
-        '2': 'Operations',
+        '2': 'ITD',
         '3': 'Finance',
+        'Human Resources': 'Human Resources',
+        'ITD': 'ITD',
+        'Finance': 'Finance'
     };
-    selectedField = choice;
-    selectedDepartment = fields[choice];
+    const fieldKey = choice in fields ? choice : null;
+
+    if (!fieldKey) {
+        addBotMessage('Invalid selection. Please choose a proper department.');
+        return;
+    }
+
+    selectedField = fieldKey;
+    selectedDepartment = fields[fieldKey];
     sessionId = localStorage.getItem('session_id');
     if (!sessionId) {
         fetch('/token', {
@@ -34,25 +40,24 @@ function handleFieldSelection(choice) {
         })
             .then(response => response.json())
             .then(data => {
-                sessionId = data.token
+                sessionId = data.token;
                 localStorage.setItem('session_id', sessionId);
             })
             .catch(error => {
-                addMessage('bot-message', 'An error occurred. Please try again.');
+                addBotMessage('An error occurred. Please try again.');
             });
     }
-    addMessage('bot-message', `You selected ${fields[choice]}. Now ask your question.`);
+    addBotMessage(`You selected <strong>${selectedDepartment}</strong>. Now, please ask your question.`);
     document.getElementById('question').placeholder = 'Ask your question...';
 }
 
 function submitQuestion(question) {
-
     if (!question) return;
 
+    addUserMessage(question);
 
-    addMessage('user-message', question);
-    showLoading(true);
-    let sessionId = localStorage.getItem('session_id');
+    // Show typing indicator
+    showBotTyping(true);
 
     fetch('/ask', {
         method: 'POST',
@@ -61,94 +66,126 @@ function submitQuestion(question) {
     })
         .then(response => response.json())
         .then(data => {
-            console.log("inside");
-            showLoading(false);
+            console.log(data);
+            // Hide typing indicator
+            showBotTyping(false);
 
             if (data.content.toLowerCase().includes("out of my knowledge")) {
-                addconcernMessage(selectedDepartment);
+                addConcernMessage(selectedDepartment);
             } else {
-                addMessage('bot-message', data.content);
+                addBotMessage(data.content);
             }
         })
         .catch(error => {
-            console.log("outside", error);
-            showLoading(false);
-            addMessage('bot-message', 'An error occurred. Please try again.');
+            showBotTyping(false);
+            addBotMessage('An error occurred. Please try again.');
         });
-    document.getElementById('question').value = '';
 }
 
-function addMessage(className, message) {
+function addUserMessage(message) {
     const chatBox = document.getElementById('chat-box');
     const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${className}`;
+    messageDiv.className = 'message user-message';
 
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.textContent = message;
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'icon';
+    iconDiv.innerHTML = '<i class="fas fa-user"></i>';
 
-    messageDiv.appendChild(bubble);
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'bubble';
+    bubbleDiv.textContent = message;
+
+    messageDiv.appendChild(bubbleDiv);
+    messageDiv.appendChild(iconDiv);
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-function showLoading(isLoading) {
-    const loading = document.getElementById('loading');
-    const submitButton = document.getElementById('submitButton');
-    loading.classList.toggle('d-none', !isLoading);
-    submitButton.disabled = isLoading;
-}
-
-function endChat() {
-    const delay = 5000;
-    showLoading(true);
-    const submitButton = document.getElementById('submitButton');
-    const endButton = document.getElementById('endChatButton');
-    submitButton.disabled = true;
-    endButton.disabled = true;
-    setTimeout(() => {
-        sessionId = null;
-        selectedField = null;
-        selectedDepartment = null;
-        localStorage.setItem('session_id', '');
-        const chatBox = document.getElementById('chat-box');
-        if (chatBox) {
-            const messageDivs = chatBox.querySelectorAll('div.message:not(:first-child)');
-            messageDivs.forEach(div => div.remove());
-        }
-        document.getElementById('question').value = '';
-        showLoading(false);
-        submitButton.disabled = false;
-        endButton.disabled = false;
-        document.getElementById('question').placeholder = 'Select your choice...';
-    }, delay);
-}
-
-
-function addconcernMessage() {
+function addBotMessage(messageContent) {
     const chatBox = document.getElementById('chat-box');
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message bot-message';
 
-    messageDiv.innerHTML = `
-        <div class="bubble">
-            As there is no data available, we could send your question to ${selectedDepartment} team.<br>
-            With this, your entire conversation history will be shared.<br>
-            Also, as conversation submitted, this chat session will be closed.<br>
-            Do you want to raise concern?
-            <div class="button-container mt-3">
-                <button class="btn btn-primary" onclick="raiseConcern(true)">Yes</button>
-                <button class="btn btn-primary" onclick="raiseConcern(false)">No</button>
-            </div>
-        </div>
-    `;
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'icon';
+    iconDiv.innerHTML = '<i class="fas fa-robot"></i>';
 
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'bubble';
+    bubbleDiv.innerHTML = messageContent;
+
+    messageDiv.appendChild(iconDiv);
+    messageDiv.appendChild(bubbleDiv);
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
+function showBotTyping(isTyping) {
+    const botTyping = document.getElementById('bot-typing');
+    botTyping.classList.toggle('d-none', !isTyping);
+    if (isTyping) {
+        botTyping.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function showLoading(isLoading) {
+    const loadingOverlay = document.getElementById('loading');
+    loadingOverlay.classList.toggle('d-none', !isLoading);
+}
+
+function endChat() {
+    showLoading(true);
+
+    // Simulate a delay for ending chat
+    setTimeout(() => {
+        selectedField = null;
+        selectedDepartment = null;
+        sessionId = null;
+        localStorage.removeItem('session_id');
+        document.getElementById('question').placeholder = 'Select your choice...';
+
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = ''; // Clear chat box
+
+        // Re-add the initial bot message
+        addBotMessage(`
+            <p>Welcome back to MSG! Please choose your field:</p>
+            <div class="button-container">
+                <button class="btn btn-option" onclick="handleFieldSelection('1')">
+                    <i class="fas fa-users"></i> Human Resources
+                </button>
+                <button class="btn btn-option" onclick="handleFieldSelection('2')">
+                    <i class="fas fa-desktop"></i> ITD
+                </button>
+                <button class="btn btn-option" onclick="handleFieldSelection('3')">
+                    <i class="fas fa-calculator"></i> Finance
+                </button>
+            </div>
+        `);
+
+        showLoading(false);
+    }, 3000); // Adjust delay as needed
+}
+
+function addConcernMessage(selectedDepartment) {
+    addBotMessage(`
+        <p>As there is no data available, we could send your question to the <strong>${selectedDepartment}</strong> team.</p>
+        <p>Your entire conversation history will be shared. As the conversation is submitted, this chat session will be closed.</p>
+        <p>Do you want to raise a concern?</p>
+        <div class="button-container">
+            <button class="btn btn-option" onclick="raiseConcern(true)">
+                <i class="fas fa-check"></i> Yes
+            </button>
+            <button class="btn btn-option" onclick="raiseConcern(false)">
+                <i class="fas fa-times"></i> No
+            </button>
+        </div>
+    `);
+}
+
 function raiseConcern(request) {
     if (request) {
+        showLoading(true);
         fetch('/raiseconcernmail', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -160,27 +197,25 @@ function raiseConcern(request) {
         })
             .then(response => response.json())
             .then(data => {
-                console.log(data);
+                showLoading(false);
                 if (data.success) {
-                    addMessage('bot-message', `Mail has been sent to the ${selectedDepartment} team. Thank you.<br> New chat session has been initiated.`);
-                    endChat();
+                    addBotMessage(`Mail has been sent to the <strong>${selectedDepartment}</strong> team. Thank you.<br> A new chat session has been initiated.`);
+                    setTimeout(endChat, 3000);
                 } else {
-                    addMessage('bot-message', 'There was an issue raising your concern.');
-                    endChat();
+                    addBotMessage('There was an issue raising your concern.');
+                    setTimeout(endChat, 3000);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                addMessage('bot-message', 'An error occurred. Please try again.');
-                endChat();
+                showLoading(false);
+                addBotMessage('An error occurred. Please try again.');
+                setTimeout(endChat, 3000);
             });
     } else {
-        addMessage('bot-message', `Thank you<br> New chat session has been initiated.`);
-        endChat();
+        addBotMessage('You can continue the chat.');
     }
 }
 
-
-
-
-
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+}
