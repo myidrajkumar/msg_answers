@@ -79,7 +79,7 @@ async function submitField() {
 
         const data = await response.json();
         hideTypingIndicator();
-
+        console.log(data);
         if (data.content.toLowerCase().includes('out of my knowledge')) {
             addConcernMessage();
         } else {
@@ -220,7 +220,6 @@ async function raiseConcern(request) {
 
 function endChat() {
     showExitSpinner();
-
     setTimeout(() => {
         selectedDepartment = null;
         sessionId = null;
@@ -230,6 +229,14 @@ function endChat() {
         questionInput.placeholder = 'Select a department to start...';
         chatMessages.innerHTML = '';
         hideExitSpinner();
+        addBotMessage(`
+            <p>Welcome back! Please select your department:</p>
+            <div class="options">
+                <button class="btn btn-option" onclick="handleFieldSelection('1')">Human Resources</button>
+                <button class="btn btn-option" onclick="handleFieldSelection('2')">ITD</button>
+                <button class="btn btn-option" onclick="handleFieldSelection('3')">Finance</button>
+            </div>
+        `);
     }, 3000);
 }
 
