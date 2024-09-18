@@ -13,6 +13,7 @@
     --user-text-color: #FFFFFF;
     --input-background: #FFFFFF;
     --input-border-color: #CCC;
+    --shadow-color: rgba(0, 0, 0, 0.1);
 }
 
 body, html {
@@ -29,19 +30,22 @@ body, html {
     flex-direction: column;
     height: 100vh;
     max-width: 600px;
-    margin: 0 auto;
-    border: 1px solid #DDD;
+    margin: 20px auto;
+    border-radius: 10px;
     background: linear-gradient(135deg, var(--secondary-color-light), var(--secondary-color-dark));
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 30px var(--shadow-color);
+    overflow: hidden;
+    border: 1px solid #DDD;
 }
 
 .chat-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
+    padding: 20px;
     background: linear-gradient(135deg, var(--primary-color-light), var(--primary-color-dark));
     color: white;
+    box-shadow: 0 2px 10px var(--shadow-color);
 }
 
 .header-left {
@@ -50,8 +54,8 @@ body, html {
 }
 
 .header-left .avatar {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--primary-color-light), var(--primary-color-dark));
     display: flex;
@@ -59,12 +63,14 @@ body, html {
     justify-content: center;
     font-size: 24px;
     color: white;
-    margin-right: 10px;
+    margin-right: 15px;
+    box-shadow: 0 2px 5px var(--shadow-color);
 }
 
 .chat-info h2 {
     margin: 0;
     font-size: 18px;
+    font-weight: bold;
 }
 
 .chat-info p {
@@ -77,14 +83,15 @@ body, html {
     background: transparent;
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 22px;
     margin-left: 10px;
     cursor: pointer;
-    transition: color 0.3s;
+    transition: color 0.3s, transform 0.3s;
 }
 
 .header-right .btn:hover {
     color: #DDD;
+    transform: scale(1.1);
 }
 
 .chat-messages {
@@ -98,6 +105,11 @@ body, html {
     display: flex;
     margin-bottom: 20px;
     align-items: flex-end;
+    transition: transform 0.3s ease;
+}
+
+.message:hover {
+    transform: translateY(-2px);
 }
 
 .message.bot-message {
@@ -120,6 +132,7 @@ body, html {
     justify-content: center;
     color: white;
     font-size: 20px;
+    box-shadow: 0 2px 10px var(--shadow-color);
 }
 
 .message.bot-message .avatar {
@@ -138,11 +151,12 @@ body, html {
 .bubble {
     background-color: var(--bot-bubble-color);
     color: var(--text-color);
-    padding: 10px 15px;
+    padding: 12px 18px;
     border-radius: 20px;
     position: relative;
     font-size: 16px;
     line-height: 1.4;
+    box-shadow: 0 2px 10px var(--shadow-color);
 }
 
 .bot-message .bubble {
@@ -153,6 +167,7 @@ body, html {
 .user-message .bubble {
     background-color: var(--user-bubble-color);
     color: var(--user-text-color);
+    background: linear-gradient(135deg, var(--primary-color-light), var(--primary-color-dark));
 }
 
 .options {
@@ -170,59 +185,52 @@ body, html {
     margin-right: 10px;
     margin-bottom: 10px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background-color 0.3s, transform 0.3s ease;
 }
 
 .btn-option:hover {
     background: linear-gradient(135deg, var(--primary-color-dark), var(--primary-color-light));
-}
-
-.chat-input input:disabled {
-    background-color: #f0f0f0;
-    color: #a0a0a0;
-    cursor: not-allowed;
-}
-
-.btn-send:disabled {
-    background-color: #cccccc;
-    color: #666666;
-    cursor: not-allowed;
+    transform: translateY(-2px);
 }
 
 .chat-input {
     display: flex;
-    padding: 10px;
+    padding: 15px;
     background-color: var(--input-background);
     border-top: 1px solid #EEE;
+    box-shadow: 0 -4px 20px var(--shadow-color);
 }
 
 .chat-input input {
     flex: 1;
-    padding: 10px 15px;
+    padding: 12px 20px;
     border: 1px solid var(--input-border-color);
     border-radius: 20px;
     outline: none;
     font-size: 16px;
     margin-right: 10px;
+    transition: border-color 0.3s;
 }
 
 .chat-input input:focus {
     border-color: var(--primary-color);
+    box-shadow: 0 0 10px var(--shadow-color);
 }
 
 .btn-send {
     background: linear-gradient(135deg, var(--primary-color-light), var(--primary-color-dark));
     color: white;
     border: none;
-    padding: 10px 15px;
+    padding: 12px 15px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 18px;
-    transition: background 0.3s;
+    font-size: 20px;
+    transition: background-color 0.3s, transform 0.3s ease;
 }
 
 .btn-send:hover {
     background: linear-gradient(135deg, var(--primary-color-dark), var(--primary-color-light));
+    transform: scale(1.1);
 }
 
 .typing-indicator {
