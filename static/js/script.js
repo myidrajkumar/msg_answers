@@ -6,6 +6,7 @@ const submitButton = document.getElementById('submitButton');
 const chatMessages = document.getElementById('chat-messages');
 const loadingOverlay = document.getElementById('loading');
 const themeIcon = document.getElementById('theme-icon');
+const departmentToShow = document.getElementById('department');
 
 document.addEventListener('DOMContentLoaded', initializeChat);
 submitButton.addEventListener('click', submitField);
@@ -45,6 +46,7 @@ async function handleFieldSelection(choice) {
     };
 
     selectedDepartment = departments[choice] || null;
+    departmentToShow.innerHTML = `${selectedDepartment}`;
 
     if (!selectedDepartment) {
         addBotMessage('Invalid selection. Please choose a proper department.');
@@ -94,12 +96,12 @@ async function submitField() {
 }
 
 function addUserMessage(message) {
-    const messageDiv = createMessageElement('user-message', '<i class="fas fa-user"></i>', message);
+    const messageDiv = createMessageElement('user-message', '<i class="fas fa-user-ninja"></i>', message);
     appendMessageToChat(messageDiv);
 }
 
 function addBotMessage(messageContent) {
-    const messageDiv = createMessageElement('bot-message', '<i class="fas fa-robot"></i>', messageContent, true);
+    const messageDiv = createMessageElement('bot-message', '<i class="fas fa-cloud"></i>', messageContent, true);
     appendMessageToChat(messageDiv);
 }
 
@@ -158,7 +160,7 @@ function showTypingIndicator() {
             <span></span><span></span><span></span>
         </div>
     `;
-    const typingDiv = createMessageElement('bot-message typing', '<i class="fas fa-robot"></i>', typingIndicatorHTML, true);
+    const typingDiv = createMessageElement('bot-message typing', '<i class="fas fa-cloud"></i>', typingIndicatorHTML, true);
     typingDiv.id = 'typing-indicator';
     appendMessageToChat(typingDiv);
 }
@@ -228,12 +230,13 @@ function endChat() {
         disableInput();
         questionInput.placeholder = 'Select a department to start...';
         chatMessages.innerHTML = '';
+        departmentToShow.innerHTML = 'Online';
         hideExitSpinner();
         addBotMessage(`
             <p>Welcome back! Please select your department:</p>
             <div class="options">
                 <button class="btn btn-option" onclick="handleFieldSelection('1')">Human Resources</button>
-                <button class="btn btn-option" onclick="handleFieldSelection('2')">ITD</button>
+                <button class="btn btn-option" onclick="handleFieldSelection('2')">IT</button>
                 <button class="btn btn-option" onclick="handleFieldSelection('3')">Finance</button>
             </div>
         `);

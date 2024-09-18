@@ -14,7 +14,7 @@ Following are the guidelines
 2. Just answer the questions based on provided context
 3. Do not use external knowledge to get the answer
 4. Just phrase the answers beautifully
-5. Please provide the answers in Markdown format ONLY always with appropritate HTML tags
+5. Please provide the answers in HTML format ONLY always with appropritate HTML tags like ul,li,a etc
 6. If the answer contains link, provide corresponding anchor tags
 7. Do not use 'According to the context/text or Based on the context/text'
 8. If the contenxt does not contain any relevant information to the question,

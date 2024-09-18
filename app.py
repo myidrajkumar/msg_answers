@@ -62,7 +62,7 @@ def raise_concern():
         elif department == "Human Resources":
             receiver = "hr@techinterrupt.com"
             subject = "HR Query"
-        elif department == "Operations":
+        elif department == "IT":
             receiver = "operations@techinterrupt.com"
             subject = "Operations Query"
         send_email(sender, receiver, subject, get_session_history(session_id))
