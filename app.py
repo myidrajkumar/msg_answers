@@ -34,7 +34,7 @@ def ask():
     session_id = data.get("token")
     department = data.get("department")
 
-    if department in ["Human Resources", "2", "3"]:
+    if department in ["Human Resources", "Finance", "IT"]:
         print(question, department, session_id)
         answer = answer_questions(question, department, session_id)
         store_session_history(session_id, question, answer)
