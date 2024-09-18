@@ -1,6 +1,5 @@
 """Main Application"""
 
-import threading
 import uuid
 
 import pyttsx3
@@ -31,15 +30,16 @@ def get_token():
 def ask():
     """Asking the question"""
     data = request.json
-    field = data.get("field")
     question = data.get("question")
     session_id = data.get("token")
     department = data.get("department")
 
-    if field in ["1", "2", "3"]:
+    if department in ["Human Resources", "Finance", "IT"]:
+        print(question, department, session_id)
         answer = answer_questions(question, department, session_id)
         store_session_history(session_id, question, answer)
     else:
+        print(question, department, session_id)
         answer = "Invalid field selected."
 
     # speak_answer(answer)
@@ -62,7 +62,7 @@ def raise_concern():
         elif department == "Human Resources":
             receiver = "hr@techinterrupt.com"
             subject = "HR Query"
-        elif department == "Operations":
+        elif department == "IT":
             receiver = "operations@techinterrupt.com"
             subject = "Operations Query"
         send_email(sender, receiver, subject, get_session_history(session_id))
@@ -82,4 +82,4 @@ def speak_answer(answer):
 
 if __name__ == "__main__":
     load_documents_if_not_present()
-    app.run(debug=True)
+    app.run(debug=False)

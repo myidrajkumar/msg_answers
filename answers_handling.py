@@ -22,7 +22,7 @@ def get_db_name(department):
     """Get Collection Name"""
     if department == "Human Resources":
         return hr_db
-    elif department == "Operations":
+    elif department == "IT":
         return it_db
     elif department == "Finance":
         return finance_db
