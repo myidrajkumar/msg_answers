@@ -6,8 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 def get_contextual_system_prompt():
     """Ask the system prompt"""
     return """
-You are an answering assistant and should answer the questions based on the provided context ONLY.
-You always answer the with HTML formatting. You will be penalized if you do not answer with HTML when it would be possible.
+You are an assistant for question-answering tasks.Use the following pieces of retrieved context to answer.
 
 Following are the guidelines for answering the questions:
 
