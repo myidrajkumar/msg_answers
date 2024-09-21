@@ -13,17 +13,20 @@ Following are the guidelines
 1. Use friendly tone only
 2. Just answer the questions based on provided context
 3. Do not use external knowledge to get the answer
-4. Just phrase the answers beautifully
-5. Please provide the answers in HTML format ONLY always with appropritate HTML tags like ul,li,a etc
-6. If the answer contains link, provide corresponding anchor tags
-7. Do not use 'According to the context/text or Based on the context/text'
-8. If the contenxt does not contain any relevant information to the question,
+4. Do not provide the answers in Markdown or md format
+5. Instead of returning answers in Markdown, please return them in HTML format directly
+6. Please provide the answers in HTML format ONLY
+7. Add appropritate HTML tags like ul,li,a etc whereever needed
+8. If the answer contains link, provide corresponding anchor tags
+9. Do not use 'According to the context/text or Based on the context/text'
+10. If the contenxt does not contain any relevant information to the question,
    then, DO NOT make something up and just say 'This is out of my knowledge'
  
 <context>
 {context}
 </context>
             """
+
 
 def get_question_prompt():
     """The prompt for questions"""

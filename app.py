@@ -2,6 +2,7 @@
 
 import uuid
 
+import markdown
 import pyttsx3
 from flask import Flask, jsonify, render_template, request
 
@@ -37,6 +38,7 @@ def ask():
     if department in ["Human Resources", "Finance", "IT"]:
         print(question, department, session_id)
         answer = answer_questions(question, department, session_id)
+        answer = markdown.markdown(answer)
         store_session_history(session_id, question, answer)
     else:
         print(question, department, session_id)

@@ -8,3 +8,4 @@ Flask
 langchain-huggingface
 langchain_chroma
 pyttsx3
+markdown
