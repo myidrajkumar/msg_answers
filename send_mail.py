@@ -16,7 +16,7 @@ def send_email(sender, receiver, subject, message):
             msg_body = "".join(
                 [
                     msg_body,
-                    '<strong style="font-size: 10;">AI: </strong>',
+                    '<strong style="font-size: 18;">AI: </strong>',
                     each_message.content,
                     "<br/>",
                 ]
@@ -25,7 +25,7 @@ def send_email(sender, receiver, subject, message):
             msg_body = "".join(
                 [
                     msg_body,
-                    '<strong style="font-size: 10;">Human: </strong>',
+                    '<strong style="font-size: 18;">Human: </strong>',
                     each_message.content,
                     "<br/>",
                 ]

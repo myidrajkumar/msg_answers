@@ -1,7 +1,9 @@
 """Main Application"""
 
+import re
 import uuid
 
+import markdown
 import pyttsx3
 from flask import Flask, jsonify, render_template, request
 
@@ -37,6 +39,7 @@ def ask():
     if department in ["Human Resources", "Finance", "IT"]:
         print(question, department, session_id)
         answer = answer_questions(question, department, session_id)
+        answer = convert_if_markdown(answer)
         store_session_history(session_id, question, answer)
     else:
         print(question, department, session_id)
@@ -96,6 +99,23 @@ def speak_answer(answer):
     engine = pyttsx3.init()
     engine.say(answer)
     engine.runAndWait()
+
+
+def convert_if_markdown(text):
+    """As LLMs are trained on Markdown, using the below approach"""
+    markdown_patterns = [
+        r"\*\*.*?\*\*",  # bold
+        r"\*.*?\*",  # italic
+        r"^# .+",  # headings
+        r"\[.*?\]\(.*?\)",  # links
+        r"^[-*] .+",  # lists
+    ]
+
+    # Check if any Markdown patterns are found in the text
+    if any(re.search(pattern, text) for pattern in markdown_patterns):
+        return markdown.markdown(text)  # Convert to HTML
+    else:
+        return text  # Return as is if no Markdown is detected
 
 
 if __name__ == "__main__":
