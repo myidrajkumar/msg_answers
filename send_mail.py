@@ -10,12 +10,26 @@ def send_email(sender, receiver, subject, message):
     """Sending email"""
     server = smtplib.SMTP("localhost", port=25)
 
-    msg_body = "Conversation History:<br/>"
+    msg_body = "<h3> Conversation History: </h3> <br/>"
     for each_message in message:
         if isinstance(each_message, AIMessage):
-            msg_body = "".join([msg_body, "AI: ", each_message.content, "<br/>"])
+            msg_body = "".join(
+                [
+                    msg_body,
+                    '<strong style="font-size: 10;">AI: </strong>',
+                    each_message.content,
+                    "<br/>",
+                ]
+            )
         elif isinstance(each_message, HumanMessage):
-            msg_body = "".join([msg_body, "Human: ", each_message.content, "<br/>"])
+            msg_body = "".join(
+                [
+                    msg_body,
+                    '<strong style="font-size: 10;">Human: </strong>',
+                    each_message.content,
+                    "<br/>",
+                ]
+            )
         else:
             print("Message Type:" + type(each_message))
 
