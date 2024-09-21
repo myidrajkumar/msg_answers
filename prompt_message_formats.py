@@ -6,7 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 def get_contextual_system_prompt():
     """Ask the system prompt"""
     return """
-You are an assistant for question-answering tasks.Use the following pieces of retrieved context to answer.
+You are an answering assistant and should answer the questions based on the provided context ONLY.
 
 Following are the guidelines for answering the questions:
 
