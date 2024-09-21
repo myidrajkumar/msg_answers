@@ -12,12 +12,9 @@ from langchain_community.document_loaders import (
     UnstructuredWordDocumentLoader,
 )
 from langchain_huggingface import HuggingFaceEmbeddings
+from werkzeug.utils import secure_filename
 
 warnings.filterwarnings("ignore", category=FutureWarning)
-
-embedding_model = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-mpnet-base-v2"
-)
 
 HR_DEPARTMENT = "hr_department"
 IT_DEPARTMENT = "it_department"
@@ -30,18 +27,26 @@ FINANCE = "finance"
 
 ROOT_DATA_DIR = r"data"
 
+embedding_model = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-mpnet-base-v2"
+)
+
+
 hr_db = Chroma(
     collection_name=HR_DEPARTMENT,
+    collection_metadata={"hnsw:space": "cosine"},
     embedding_function=embedding_model,
     persist_directory="".join([CHROMA_DB, "/", HR]),
 )
 it_db = Chroma(
     collection_name=IT_DEPARTMENT,
+    collection_metadata={"hnsw:space": "cosine"},
     embedding_function=embedding_model,
     persist_directory="".join([CHROMA_DB, "/", IT]),
 )
 finance_db = Chroma(
     collection_name=FINANCE_DEPARTMENT,
+    collection_metadata={"hnsw:space": "cosine"},
     embedding_function=embedding_model,
     persist_directory="".join([CHROMA_DB, "/", FINANCE]),
 )
@@ -122,3 +127,97 @@ def load_documents_if_not_present():
     load_hr_document_if_not_present()
     load_it_document_if_not_present()
     load_finance_document_if_not_present()
+
+
+def load_into_chromadb(file_content, db_name):
+    """Loading specific document"""
+    documents = []
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    filename = secure_filename(file_content.filename)
+    if filename.endswith(".txt"):
+        loader = TextLoader(file_content)
+    elif filename.endswith(".pdf"):
+        loader = PyPDFLoader(file_content)
+    elif filename.endswith(".docx"):
+        loader = UnstructuredWordDocumentLoader(file_content)
+    elif filename.endswith(".pptx"):
+        loader = UnstructuredPowerPointLoader(file_content)
+    else:
+        print(f"Unsupported file type for {filename}")
+
+    document = loader.load()
+    for doc in document:
+        doc.metadata["upload_date"] = current_time
+    documents.extend(document)
+
+    db_name.add_texts([doc.page_content for doc in documents])
+
+
+def load_specific_doc(doc_file, category):
+    """Load specific doc"""
+
+    filename = secure_filename(doc_file.filename)
+    department_folder = get_folder_name(category)
+
+    filename = "".join([department_folder, "/", filename])
+    doc_file.save(filename)
+
+    db_name = get_db(category)
+    documents = []
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    if filename.endswith(".txt"):
+        loader = TextLoader(filename)
+    elif filename.endswith(".pdf"):
+        loader = PyPDFLoader(filename)
+    elif filename.endswith(".docx"):
+        loader = UnstructuredWordDocumentLoader(filename)
+    elif filename.endswith(".pptx"):
+        loader = UnstructuredPowerPointLoader(filename)
+    else:
+        print(f"Unsupported file type for {filename}")
+
+    document = loader.load()
+    for doc in document:
+        doc.metadata["upload_date"] = current_time
+    documents.extend(document)
+
+    db_name.add_texts([doc.page_content for doc in documents])
+    print(f"{filename} document is now loaded")
+
+
+def get_db_name(department):
+    """Get Collection Name"""
+    if department == "Human Resources":
+        return HR_DEPARTMENT
+    elif department == "IT":
+        return IT_DEPARTMENT
+    elif department == "Finance":
+        return FINANCE_DEPARTMENT
+    else:
+        return None
+
+
+def get_folder_name(department):
+    """Get Folder Name"""
+    if department == "Human Resources":
+        return ROOT_DATA_DIR + "/" + HR
+    elif department == "IT":
+        return ROOT_DATA_DIR + "/" + IT
+    elif department == "Finance":
+        return ROOT_DATA_DIR + "/" + FINANCE
+    else:
+        return None
+
+
+def get_db(department):
+    """Get Collection"""
+    if department == "Human Resources":
+        return hr_db
+    elif department == "IT":
+        return it_db
+    elif department == "Finance":
+        return finance_db
+    else:
+        return None

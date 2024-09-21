@@ -6,7 +6,7 @@ import pyttsx3
 from flask import Flask, jsonify, render_template, request
 
 from answers_handling import answer_questions
-from chromadb_load import load_documents_if_not_present
+from chromadb_load import load_documents_if_not_present, load_specific_doc
 from send_mail import send_email
 from vector_stores import get_session_history, store_session_history
 
@@ -71,6 +71,24 @@ def raise_concern():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"success": False, "message": "An error occurred"}), 500
+
+
+@app.route("/fileupload", methods=["POST"])
+def upload_file():
+    """Uploading specific file"""
+    department = request.args.get("department", "Human Resources")
+
+    # check if the post request has the file part
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+
+    load_specific_doc(file, department)
+    return jsonify({"message": "success"}), 200
 
 
 def speak_answer(answer):
