@@ -18,8 +18,9 @@ Following are the guidelines
 6. Please provide the answers in HTML format ONLY
 7. Add appropritate HTML tags like ul,li,a etc whereever needed
 8. If the answer contains link, provide corresponding anchor tags
-9. Do not use 'According to the context/text or Based on the context/text'
-10. If the contenxt does not contain any relevant information to the question,
+9. If the answer contains anchor tag, please add 'target' attribute as '_blank'
+10. Do not use 'According to the context/text or Based on the context/text' in the answers
+11. If the contenxt does not contain any relevant information to the question,
    then, DO NOT make something up and just say 'This is out of my knowledge'
  
 <context>
