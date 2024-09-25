@@ -13,19 +13,19 @@
         <div class="chat-header">
             <div class="header-left">
                 <div class="avatar">
-                    <i class="fas fa-cloud"></i>
-                </div>
+                    <img src="{{ url_for('static', filename='img/logo_msg_global_RGB.svg') }}" alt="MSG Global" title="MSG Global"/>
+                </div>                
                 <div class="chat-info">
                     <h2>MSG Assistant Bot</h2>
                     <p id="department">Online</p>
                 </div>
             </div>
             <div class="header-right">
-                <button class="btn btn-icon" onclick="toggleTheme()" aria-label="Toggle Theme">
+                <button class="btn btn-icon" onclick="toggleTheme()" aria-label="Toggle Theme" title="Theme">
                     <i class="fas fa-moon" id="theme-icon"></i>
                 </button>
-                <button class="btn btn-icon" onclick="endChat()" aria-label="End Chat">
-                    <i class="fas fa-sign-out-alt"></i>
+                <button class="btn btn-icon" onclick="endChat()" aria-label="End Chat" title="End Chat">
+                    <i class="fas fa-comment"></i>
                 </button>
             </div>
         </div>
@@ -50,7 +50,7 @@
         <div class="chat-input">
             <input type="text" id="question" placeholder="Type a message..." disabled 
             onkeydown="if(event.key === 'Enter') submitField()">
-            <button class="btn btn-send" id="submitButton" onclick="submitField()" disabled>
+            <button class="btn btn-send" id="submitButton" onclick="submitField()" disabled title="Submit Button">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
