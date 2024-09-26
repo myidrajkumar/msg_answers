@@ -101,7 +101,7 @@ function addUserMessage(message) {
 }
 
 function addBotMessage(messageContent) {
-    const messageDiv = createMessageElement('bot-message', '<i class="fas fa-cloud"></i>', messageContent, true);
+    const messageDiv = createMessageElement('bot-message', '<i class="fas fa-headset"></i>', messageContent, true);
     appendMessageToChat(messageDiv);
 }
 
@@ -160,7 +160,7 @@ function showTypingIndicator() {
             <span></span><span></span><span></span>
         </div>
     `;
-    const typingDiv = createMessageElement('bot-message typing', '<i class="fas fa-cloud"></i>', typingIndicatorHTML, true);
+    const typingDiv = createMessageElement('bot-message typing', '<i class="fas fa-headset"></i>', typingIndicatorHTML, true);
     typingDiv.id = 'typing-indicator';
     appendMessageToChat(typingDiv);
 }

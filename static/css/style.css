@@ -159,7 +159,8 @@ body, html {
 
 .message.bot-message .avatar {
     margin-right: 10px;
-    background: linear-gradient(135deg, var(--secondary-color-light), var(--secondary-color-dark));
+    color: var(--primary-color);
+    background: var(--bot-bubble-color) ;
 }
 
 .message.user-message .avatar {
