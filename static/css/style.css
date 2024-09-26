@@ -187,7 +187,7 @@ body, html {
 }
 
 .user-message .bubble {
-    background-color: linear-gradient(135deg, var(--primary-color-light), var(--primary-color-dark));
+    background-color: var(--user-bubble-color);
     color: var(--user-text-color);
 }
 
