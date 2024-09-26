@@ -384,3 +384,41 @@ body.dark-mode .btn-option:hover {
         font-size: 15px;
     }
 }
+
+.floating-icon {
+    position: fixed;
+    bottom: 80px; 
+    left: 50%;   
+    transform: translateX(-50%);  
+    width: 30px;
+    height: 30px;
+    background-color: var(--primary-color); 
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 1000;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.floating-icon i {
+    font-size: 20px;
+}
+
+.d-none {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.floating-icon:not(.d-none) {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.chat-messages {
+    scroll-behavior: smooth;
+}
+

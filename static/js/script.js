@@ -1,5 +1,6 @@
 let selectedDepartment = localStorage.getItem('selected_department') || null;
 let sessionId = null;
+let autoScroll = true;
 
 const questionInput = document.getElementById('question');
 const submitButton = document.getElementById('submitButton');
@@ -7,6 +8,7 @@ const chatMessages = document.getElementById('chat-messages');
 const loadingOverlay = document.getElementById('loading');
 const themeIcon = document.getElementById('theme-icon');
 const departmentToShow = document.getElementById('department');
+const scrollToTopIcon = document.getElementById('scrollToTopIcon');
 
 document.addEventListener('DOMContentLoaded', initializeChat);
 submitButton.addEventListener('click', submitField);
@@ -255,4 +257,20 @@ function toggleTheme() {
     document.body.classList.toggle('dark-mode');
     themeIcon.classList.toggle('fa-moon');
     themeIcon.classList.toggle('fa-sun');
+}
+
+chatMessages.addEventListener('scroll', () => {
+    if (chatMessages.scrollTop + chatMessages.clientHeight < chatMessages.scrollHeight) {
+        autoScroll = false;
+        scrollToTopIcon.classList.remove('d-none'); 
+    } else {
+        autoScroll = true;
+        scrollToTopIcon.classList.add('d-none');
+    }
+});
+
+function scrollToTop() {
+    chatMessages.scrollTop = 0;
+    scrollToTopIcon.classList.add('d-none');  
+    autoScroll = true;  
 }
