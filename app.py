@@ -2,39 +2,55 @@
 
 import re
 import uuid
+from typing import Optional
 
 import markdown
 import pyttsx3
-from flask import Flask, jsonify, render_template, request
+
+from fastapi import FastAPI, Request, UploadFile
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from answers_handling import answer_questions
 from chromadb_load import load_documents_if_not_present, load_specific_doc
 from send_mail import send_email
 from vector_stores import get_session_history, store_session_history
 
-app = Flask(__name__)
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
 
 
-@app.route("/")
-def index():
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request):
     """Main Page"""
-    return render_template("index.html")
+    return templates.TemplateResponse(request=request, name="index.html")
 
 
-@app.route("/token", methods=["GET"])
+@app.get("/token")
 def get_token():
     """Retrieve Token"""
     session_id = str(uuid.uuid4())
-    return jsonify({"token": session_id})
+    return {"token": session_id}
 
 
-@app.route("/ask", methods=["POST"])
-def ask():
+class QuestionRequest(BaseModel):
+    """Request Parameters"""
+
+    question: Optional[str] = None
+    token: str
+    department: str
+
+
+@app.post("/ask")
+async def ask(request: QuestionRequest):
     """Asking the question"""
-    data = request.json
-    question = data.get("question")
-    session_id = data.get("token")
-    department = data.get("department")
+    question = request.question
+    session_id = request.token
+    department = request.department
 
     if department in ["Human Resources", "Finance", "IT"]:
         print(question, department, session_id)
@@ -48,16 +64,15 @@ def ask():
     # speak_answer(answer)
     # threading.Thread(target=speak_answer, kwargs={"answer": answer}).start()
 
-    return jsonify({"content": answer})
+    return {"content": answer}
 
 
-@app.route("/raiseconcernmail", methods=["POST"])
-def raise_concern():
+@app.post("/raiseconcernmail")
+def raise_concern(request: QuestionRequest):
     """Sending concern"""
     try:
-        data = request.json
-        department = data.get("department")
-        session_id = data.get("token")
+        department = request.department
+        session_id = request.token
         sender = "admin@techinterrupt.com"
         if department == "Finance":
             receiver = "finance@techinterrupt.com"
@@ -69,29 +84,23 @@ def raise_concern():
             receiver = "operations@techinterrupt.com"
             subject = "Operations Query"
         send_email(sender, receiver, subject, get_session_history(session_id))
-        return jsonify({"success": True, "message": "Concern raised successfully"})
+        return {"success": True, "message": "Concern raised successfully"}
 
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"success": False, "message": "An error occurred"}), 500
+        return {"success": False, "message": "An error occurred"}, 500
 
 
-@app.route("/fileupload", methods=["POST"])
-def upload_file():
+@app.post("/fileupload")
+def upload_file(department: str, file: UploadFile):
     """Uploading specific file"""
-    department = request.args.get("department", "Human Resources")
 
     # check if the post request has the file part
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-
-    file = request.files["file"]
-
     if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+        return {"error": "No selected file"}, 400
 
     load_specific_doc(file, department)
-    return jsonify({"message": "success"}), 200
+    return {"message": "success"}, 200
 
 
 def speak_answer(answer):
@@ -120,4 +129,7 @@ def convert_if_markdown(text):
 
 if __name__ == "__main__":
     load_documents_if_not_present()
-    app.run(debug=False)
+
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0")

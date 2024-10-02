@@ -6,7 +6,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 def get_contextual_system_prompt():
     """Ask the system prompt"""
     return """
-You are an answering assistant and should answer the questions based on the provided context ONLY.
+You are an assistant for question-answering tasks. 
+Use the following pieces of retrieved context ONLY to answer the question.
+If you don't know the answer, just say that 'This is out of my knowledge'
+
+Context: {context}
 
 Following are the guidelines for answering the questions:
 
@@ -21,10 +25,6 @@ Following are the guidelines for answering the questions:
 9. If the answer contains anchor tag, please add 'target' attribute as '_blank'
 11. If the context does not contain any relevant information to the question,
    then, DO NOT make something up and just say 'This is out of my knowledge'
-
-<context>
-{context}
-</context>
             """
 
 

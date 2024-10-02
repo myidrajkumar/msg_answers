@@ -4,10 +4,11 @@ python-dotenv
 langchain_community
 langchain_text_splitters
 pypdf
-Flask
 langchain-huggingface
 langchain_chroma
 pyttsx3
 markdown
 unstructured
 python-pptx
+fastapi[all]
+jinja2

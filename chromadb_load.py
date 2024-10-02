@@ -12,7 +12,6 @@ from langchain_community.document_loaders import (
     UnstructuredWordDocumentLoader,
 )
 from langchain_huggingface import HuggingFaceEmbeddings
-from werkzeug.utils import secure_filename
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -134,7 +133,7 @@ def load_into_chromadb(file_content, db_name):
     documents = []
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    filename = secure_filename(file_content.filename)
+    filename = file_content.filename
     if filename.endswith(".txt"):
         loader = TextLoader(file_content)
     elif filename.endswith(".pdf"):
@@ -157,7 +156,7 @@ def load_into_chromadb(file_content, db_name):
 def load_specific_doc(doc_file, category):
     """Load specific doc"""
 
-    filename = secure_filename(doc_file.filename)
+    filename = doc_file.filename
     department_folder = get_folder_name(category)
 
     filename = "".join([department_folder, "/", filename])
