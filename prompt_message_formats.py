@@ -25,6 +25,8 @@ Following are the guidelines for answering the questions:
 9. If the answer contains anchor tag, please add 'target' attribute as '_blank'
 11. If the context does not contain any relevant information to the question,
    then, DO NOT make something up and just say 'This is out of my knowledge'
+
+YOU CANNOT PROVIDE A ANSWER IF IT DOES NOT APPEAR IN YOUR CONTEXT AND JUST SAY 'This is out of my knowledge'.   
             """
 
 
