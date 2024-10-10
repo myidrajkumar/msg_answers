@@ -80,16 +80,41 @@ async function submitField() {
                 token: sessionId,
             }),
         });
+        // Create a new ReadableStream to handle the response body
+        const reader = response.body.getReader();
+        
+        // Create a new message element to hold the bot's message
+        const messageDiv = createMessageElement('bot-message', '<i class="fas fa-headset"></i>', '', true);
+        appendMessageToChat(messageDiv);
 
-        const data = await response.json();
-        hideTypingIndicator();
-        console.log(data);
-        if (data.content.toLowerCase().includes('out of my knowledge')) {
-            addConcernMessage();
-        } else {
-            addBotMessage(data.content);
-            enableInput();
-        }
+        let fullMessage = ''; 
+        // Read the stream
+        const readStream = () => {
+            hideTypingIndicator();
+            reader.read().then(({ done, value }) => {
+                if (done) {
+                    hideTypingIndicator(); // Hide typing indicator when done
+                    enableInput();  
+                    return;
+                }
+                //Decode the value
+                const messagePart = new TextDecoder('utf-8').decode(value);
+                fullMessage += messagePart; // Append the new part to the full message
+                // Convert the full message to HTML
+                const currentMessage = marked.parse(fullMessage); 
+                // Update the inner HTML of the existing message div
+                messageDiv.querySelector('.bubble').innerHTML = currentMessage; // Display the updated message
+         
+                // Continue reading the stream
+                readStream();
+            }).catch(error => {
+                console.error("Stream reading error:", error);
+            });
+        };
+
+        // Start reading the stream
+        readStream(messageDiv);
+        enableInput();
     } catch (error) {
         hideTypingIndicator();
         addBotMessage('An error occurred while processing your request. Please try again.');

@@ -1,14 +1,12 @@
 """Main Application"""
 
-import re
 import uuid
 from typing import Optional
-
-import markdown
+import asyncio
 import pyttsx3
 
 from fastapi import FastAPI, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -16,7 +14,7 @@ from pydantic import BaseModel
 from answers_handling import answer_questions
 from chromadb_load import load_documents_if_not_present, load_specific_doc
 from send_mail import send_email
-from vector_stores import get_session_history, store_session_history
+from vector_stores import get_session_history
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -47,24 +45,27 @@ class QuestionRequest(BaseModel):
 
 @app.post("/ask")
 async def ask(request: QuestionRequest):
-    """Asking the question"""
     question = request.question
     session_id = request.token
     department = request.department
 
-    if department in ["Human Resources", "Finance", "IT"]:
-        print(question, department, session_id)
-        answer = answer_questions(question, department, session_id)
-        answer = convert_if_markdown(answer)
-        store_session_history(session_id, question, answer)
-    else:
-        print(question, department, session_id)
-        answer = "Invalid field selected."
+    async def generate():
+        if department in ["Human Resources", "Finance", "IT"]:
+            print(question, department, session_id)
+            for chunk in answer_questions(question, department, session_id):
+                if "answer" in chunk:
+                    answer = chunk["answer"]
+                    yield answer
+                await asyncio.sleep(
+                    0.05
+                )  # Simulate delay(50 milliseconds) for smoother streaming
+        else:
+            print(question, department, session_id)
+            yield "Invalid field selected."
+        # speak_answer(answer)
+        # threading.Thread(target=speak_answer, kwargs={"answer": answer}).start()
 
-    # speak_answer(answer)
-    # threading.Thread(target=speak_answer, kwargs={"answer": answer}).start()
-
-    return {"content": answer}
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 
 @app.post("/raiseconcernmail")
@@ -108,23 +109,6 @@ def speak_answer(answer):
     engine = pyttsx3.init()
     engine.say(answer)
     engine.runAndWait()
-
-
-def convert_if_markdown(text):
-    """As LLMs are trained on Markdown, using the below approach"""
-    markdown_patterns = [
-        r"\*\*.*?\*\*",  # bold
-        r"\*.*?\*",  # italic
-        r"^# .+",  # headings
-        r"\[.*?\]\(.*?\)",  # links
-        r"^[-*] .+",  # lists
-    ]
-
-    # Check if any Markdown patterns are found in the text
-    if any(re.search(pattern, text) for pattern in markdown_patterns):
-        return markdown.markdown(text)  # Convert to HTML
-    else:
-        return text  # Return as is if no Markdown is detected
 
 
 if __name__ == "__main__":
