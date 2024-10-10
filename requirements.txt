@@ -7,7 +7,6 @@ pypdf
 langchain-huggingface
 langchain_chroma
 pyttsx3
-markdown
 unstructured
 python-pptx
 fastapi[all]

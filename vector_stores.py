@@ -33,11 +33,11 @@ def store_session_history(session_id: str, question: str, answer: str):
 def get_retrieval_chain_for_db(department_db):
     """Get the retrieval chain"""
     prompt = get_question_prompt()
-    chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
+    document_chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
     retriever = department_db.as_retriever(search__kwargs={"k": 3})
     retriever_prompt = get_retriever_prompt()
     history_aware_retriever = create_history_aware_retriever(
         llm=llm, retriever=retriever, prompt=retriever_prompt
     )
-    retrieval_chain = create_retrieval_chain(history_aware_retriever, chain)
+    retrieval_chain = create_retrieval_chain(history_aware_retriever, document_chain)
     return retrieval_chain
