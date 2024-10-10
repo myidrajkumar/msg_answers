@@ -54,13 +54,3 @@ def get_retriever_prompt():
     )
 
     return retriever_prompt
-
-
-# Function to determine tone based on sentiment
-def get_tone_from_sentiment(sentiment):
-    if sentiment == "POSITIVE":
-        return "friendly and encouraging"
-    elif sentiment == "NEGATIVE":
-        return "empathetic and supportive"
-    else:
-        return "neutral and helpful"
