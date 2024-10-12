@@ -74,6 +74,8 @@ def raise_concern(request: QuestionRequest):
         department = request.department
         session_id = request.token
         sender = "admin@techinterrupt.com"
+        receiver = None
+        subject = None
         if department == "Finance":
             receiver = "finance@techinterrupt.com"
             subject = "Finance Query"
