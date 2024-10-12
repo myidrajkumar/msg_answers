@@ -93,15 +93,24 @@ def raise_concern(request: QuestionRequest):
         return {"success": False, "message": "An error occurred"}, 500
 
 
+class FileRequestPayload(BaseModel):
+    """File Request Model"""
+
+    department: str
+    version: str
+    tags: str
+
+
 @app.post("/fileupload")
-def upload_file(department: str, file: UploadFile):
+def upload_file(file: UploadFile, department: str, version: str, tags: str):
     """Uploading specific file"""
 
     # check if the post request has the file part
     if file.filename == "":
         return {"error": "No selected file"}, 400
 
-    load_specific_doc(file, department)
+    payload = FileRequestPayload(department=department, version=version, tags=tags)
+    load_specific_doc(file, payload)
     return {"message": "success"}, 200
 
 

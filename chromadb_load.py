@@ -1,6 +1,8 @@
 """Loaded Chroma DB"""
 
 import os
+import pathlib
+import shutil
 import warnings
 from datetime import datetime
 
@@ -12,6 +14,8 @@ from langchain_community.document_loaders import (
     UnstructuredWordDocumentLoader,
 )
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pydantic import BaseModel
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -26,27 +30,25 @@ FINANCE = "finance"
 
 ROOT_DATA_DIR = r"data"
 
-embedding_model = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-mpnet-base-v2"
-)
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
 
 hr_db = Chroma(
     collection_name=HR_DEPARTMENT,
     collection_metadata={"hnsw:space": "cosine"},
-    embedding_function=embedding_model,
+    embedding_function=embeddings,
     persist_directory="".join([CHROMA_DB, "/", HR]),
 )
 it_db = Chroma(
     collection_name=IT_DEPARTMENT,
     collection_metadata={"hnsw:space": "cosine"},
-    embedding_function=embedding_model,
+    embedding_function=embeddings,
     persist_directory="".join([CHROMA_DB, "/", IT]),
 )
 finance_db = Chroma(
     collection_name=FINANCE_DEPARTMENT,
     collection_metadata={"hnsw:space": "cosine"},
-    embedding_function=embedding_model,
+    embedding_function=embeddings,
     persist_directory="".join([CHROMA_DB, "/", FINANCE]),
 )
 
@@ -56,31 +58,47 @@ def check_if_docs_loaded(department_db):
     return len(department_db.get()["documents"]) > 0
 
 
-def get_loader_documents(file_path, category):
+def get_doc_file_loader(filename):
+    """Get doc loader"""
+    if filename.endswith(".txt"):
+        loader = TextLoader(filename)
+    elif filename.endswith(".pdf"):
+        loader = PyPDFLoader(filename)
+    elif filename.endswith(".docx"):
+        loader = UnstructuredWordDocumentLoader(filename)
+    elif filename.endswith(".pptx"):
+        loader = UnstructuredPowerPointLoader(filename)
+    else:
+        print(f"Unsupported file type for {filename}")
+        loader = None
+    return loader
+
+
+class Payload(BaseModel):
+    """Request Parameters"""
+
+    version: str
+    tags: str
+
+
+def get_doc_directory_loader(file_path, category):
     """Get loader for documents"""
 
     documents = []
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    payload = Payload(version="1.0", tags=category)
+
     for dir_path, _, files in os.walk(file_path):
         for available_file in files:
             file_name = os.path.join(dir_path, available_file)
-            if available_file.endswith(".txt"):
-                loader = TextLoader(file_name)
-            elif available_file.endswith(".pdf"):
-                loader = PyPDFLoader(file_name)
-            elif available_file.endswith(".docx"):
-                loader = UnstructuredWordDocumentLoader(file_name)
-            elif available_file.endswith(".pptx"):
-                loader = UnstructuredPowerPointLoader(file_name)
-            else:
-                print(f"Unsupported file type for {file_name}")
+
+            loader = get_doc_file_loader(file_name)
+            if loader is None:
                 continue
-            document = loader.load()
-            for doc in document:
-                doc.metadata["category"] = category
-                doc.metadata["version"] = "v1"
-                doc.metadata["upload_date"] = current_time
-            documents.extend(document)
+
+            documents = add_metadata_to_doc(available_file, payload, loader)
+            chunks = split_text(documents)
+            documents.extend(chunks)
 
     return documents
 
@@ -92,8 +110,8 @@ def load_hr_document_if_not_present():
         return
 
     directory = os.path.join(ROOT_DATA_DIR, HR)
-    documents = get_loader_documents(directory, HR.upper())
-    hr_db.add_texts([doc.page_content for doc in documents])
+    documents = get_doc_directory_loader(directory, HR.upper())
+    hr_db.add_documents(documents)
     print("HR documents now loaded")
 
 
@@ -104,8 +122,8 @@ def load_it_document_if_not_present():
         return
 
     directory = os.path.join(ROOT_DATA_DIR, IT)
-    documents = get_loader_documents(directory, IT.upper())
-    it_db.add_texts([doc.page_content for doc in documents])
+    documents = get_doc_directory_loader(directory, IT.upper())
+    it_db.add_documents(documents)
     print("IT documents now loaded")
 
 
@@ -116,8 +134,8 @@ def load_finance_document_if_not_present():
         return
 
     directory = os.path.join(ROOT_DATA_DIR, FINANCE)
-    documents = get_loader_documents(directory, FINANCE.upper())
-    finance_db.add_texts([doc.page_content for doc in documents])
+    documents = get_doc_directory_loader(directory, FINANCE.upper())
+    finance_db.add_documents(documents)
     print("Finanace documents now loaded")
 
 
@@ -128,62 +146,64 @@ def load_documents_if_not_present():
     load_finance_document_if_not_present()
 
 
-def load_into_chromadb(file_content, db_name):
-    """Loading specific document"""
-    documents = []
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    filename = file_content.filename
-    if filename.endswith(".txt"):
-        loader = TextLoader(file_content)
-    elif filename.endswith(".pdf"):
-        loader = PyPDFLoader(file_content)
-    elif filename.endswith(".docx"):
-        loader = UnstructuredWordDocumentLoader(file_content)
-    elif filename.endswith(".pptx"):
-        loader = UnstructuredPowerPointLoader(file_content)
-    else:
-        print(f"Unsupported file type for {filename}")
-
-    document = loader.load()
-    for doc in document:
-        doc.metadata["upload_date"] = current_time
-    documents.extend(document)
-
-    db_name.add_texts([doc.page_content for doc in documents])
-
-
-def load_specific_doc(doc_file, category):
+def load_specific_doc(doc_file, payload):
     """Load specific doc"""
 
+    filename = save_department_doc(doc_file, payload)
+    db_name = get_db(payload.department)
+
+    loader = get_doc_file_loader(filename)
+    if loader is None:
+        return
+
+    documents = add_metadata_to_doc(doc_file, payload, loader)
+    chunks = split_text(documents)
+
+    db_name.add_documents(chunks)
+
+    print(f"{filename} document is now loaded")
+
+
+def split_text(documents_list):
+    """Split the Document objects into smaller chunks."""
+
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=400,
+        chunk_overlap=100,
+        length_function=len,
+        add_start_index=True,
+    )
+
+    return text_splitter.split_documents(documents_list)
+
+
+def add_metadata_to_doc(file_name, payload, loader):
+    """Attaching Metadata"""
+
+    documents = loader.load()
+
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    for doc in documents:
+        doc.metadata["upload_date"] = current_time
+        doc.metadata["title"] = file_name
+        doc.metadata["version"] = payload.version
+        doc.metadata["tags"] = payload.tags
+
+    return documents
+
+
+def save_department_doc(doc_file, payload):
+    """Saving doc under department"""
     filename = doc_file.filename
-    department_folder = get_folder_name(category)
+    department_folder = get_folder_name(payload.department)
 
     filename = "".join([department_folder, "/", filename])
-    doc_file.save(filename)
+    pathlib.Path(filename).parent.mkdir(parents=True, exist_ok=True)
 
-    db_name = get_db(category)
-    documents = []
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(filename, "wb+") as file_object:
+        shutil.copyfileobj(doc_file.file, file_object)
 
-    if filename.endswith(".txt"):
-        loader = TextLoader(filename)
-    elif filename.endswith(".pdf"):
-        loader = PyPDFLoader(filename)
-    elif filename.endswith(".docx"):
-        loader = UnstructuredWordDocumentLoader(filename)
-    elif filename.endswith(".pptx"):
-        loader = UnstructuredPowerPointLoader(filename)
-    else:
-        print(f"Unsupported file type for {filename}")
-
-    document = loader.load()
-    for doc in document:
-        doc.metadata["upload_date"] = current_time
-    documents.extend(document)
-
-    db_name.add_texts([doc.page_content for doc in documents])
-    print(f"{filename} document is now loaded")
+    return filename
 
 
 def get_db_name(department):
