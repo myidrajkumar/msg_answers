@@ -57,6 +57,7 @@ async function handleFieldSelection(choice) {
 
     localStorage.setItem('selected_department', selectedDepartment);
     enableInput();
+    localStorage.removeItem('session_id'); 
     await getSessionId();
     addBotMessage(`You selected <strong>${selectedDepartment}</strong>. How can I assist you today?`);
 }

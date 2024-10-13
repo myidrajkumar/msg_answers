@@ -3,7 +3,6 @@
 import uuid
 from typing import Optional
 
-import pyttsx3
 
 from fastapi import FastAPI, Request, Response, UploadFile, status
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -53,7 +52,6 @@ async def ask(request: QuestionRequest):
     if department in ["Human Resources", "Finance", "IT"]:
         print(question, department, session_id)
         answer = answer_questions(question, department, session_id)
-        store_session_history(session_id, question, answer)
     else:
         print(question, department, session_id)
         answer = "Invalid field selected."
@@ -107,13 +105,6 @@ def upload_file(file: UploadFile, department: str, version: str, tags: str):
     payload = FileRequestPayload(department=department, version=version, tags=tags)
     load_specific_doc(file, payload)
     return {"message": "success"}
-
-
-def speak_answer(answer):
-    """Speak the answer"""
-    engine = pyttsx3.init()
-    engine.say(answer)
-    engine.runAndWait()
 
 
 if __name__ == "__main__":

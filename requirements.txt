@@ -6,7 +6,6 @@ langchain_text_splitters
 pypdf
 langchain-huggingface
 langchain_chroma
-pyttsx3
 unstructured
 python-pptx
 fastapi[all]

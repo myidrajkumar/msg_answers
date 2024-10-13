@@ -1,18 +1,16 @@
 """Answer the questions"""
 
 from chromadb_load import get_db
-from vector_stores import get_retrieval_chain_for_db, get_session_history
+from vector_stores import get_retrieval_chain_for_db
 
 
 def answer_questions(question, department, session_id):
     """Answer the questions"""
 
-    conversation_history = get_session_history(session_id)
     department_db = get_db(department)
-    retrieval_chain = get_retrieval_chain_for_db(department_db)
+    conversational_rag_chain = get_retrieval_chain_for_db(department_db)
 
-    response = retrieval_chain.invoke(
-        {"input": question, "chat_history": conversation_history}
-    )
-
-    return response["answer"]
+    return conversational_rag_chain.invoke(
+        {"input": question},
+        config={"configurable": {"session_id": session_id}},
+    )["answer"]

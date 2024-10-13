@@ -6,32 +6,33 @@ from email.mime.multipart import MIMEMultipart
 from langchain_core.messages import AIMessage, HumanMessage
 
 
-def send_email(sender, receiver, subject, message):
+def send_email(sender, receiver, subject, history):
     """Sending email"""
+    print("ChatHistory:", history)
     server = smtplib.SMTP("localhost", port=25)
 
     msg_body = "<h3> Conversation History: </h3> <br/>"
-    for each_message in message:
-        if isinstance(each_message, AIMessage):
+    for message in history.messages:
+        if isinstance(message, AIMessage):
             msg_body = "".join(
                 [
                     msg_body,
                     '<strong style="font-size: 18;">AI: </strong>',
-                    each_message.content,
+                    message.content,
                     "<br/>",
                 ]
             )
-        elif isinstance(each_message, HumanMessage):
+        elif isinstance(message, HumanMessage):
             msg_body = "".join(
                 [
                     msg_body,
                     '<strong style="font-size: 18;">Human: </strong>',
-                    each_message.content,
+                    message.content,
                     "<br/>",
                 ]
             )
         else:
-            print("Message Type:" + type(each_message))
+            print("Message Type:" + str(type(message)))
 
     # mail_message = MIMEText(msg_body, "plain")
     mail_message = MIMEMultipart("alternative")
