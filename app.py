@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from answers_handling import answer_questions
 from chromadb_load import load_documents_if_not_present, load_specific_doc
 from send_mail import send_email
-from vector_stores import get_session_history, store_session_history
+from vector_stores import get_session_history
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -56,7 +56,7 @@ async def ask(request: QuestionRequest):
         print(question, department, session_id)
         answer = "Invalid field selected."
 
-    return {"content": answer}
+    return StreamingResponse(answer, media_type="text/event-stream")
 
 
 @app.post("/raiseconcernmail", status_code=status.HTTP_200_OK)

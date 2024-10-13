@@ -82,15 +82,37 @@ async function submitField() {
             }),
         });
 
-        const data = await response.json();
+
+        const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
         hideTypingIndicator();
-        console.log(data);
-        if (data.content.toLowerCase().includes('out of my knowledge')) {
-            addConcernMessage();
-        } else {
-            addBotMessage(data.content);
-            enableInput();
+        appendingDiv = null
+
+        let botMessageContent = '';
+        first_add = false
+        while (true) {
+            const { value, done } = await reader.read();
+            console.log('Received Value', value, 'Done', done);
+            
+            if(done) {
+                if (botMessageContent.toLowerCase().includes('out of my knowledge')) {
+                    addConcernMessage();
+                } else {
+                    enableInput();
+                }
+                break;
+            } else {
+                if(!first_add) {
+                    appendingDiv = addBotMessage(value);
+                    first_add = true
+                    botMessageContent += value;
+                } else {
+                    botMessageContent += value;
+                    innerDiv = appendingDiv.querySelector('.message-content .bubble');
+                    innerDiv.innerHTML = botMessageContent;
+                }
+            }
         }
+
     } catch (error) {
         hideTypingIndicator();
         addBotMessage('An error occurred while processing your request. Please try again.');
@@ -106,6 +128,7 @@ function addUserMessage(message) {
 function addBotMessage(messageContent) {
     const messageDiv = createMessageElement('bot-message', '<i class="fas fa-headset"></i>', messageContent, true);
     appendMessageToChat(messageDiv);
+    return messageDiv
 }
 
 function createMessageElement(messageType, avatarIcon, messageContent, isHTML = false) {
