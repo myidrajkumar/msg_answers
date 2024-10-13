@@ -1,10 +1,8 @@
 """Main Application"""
 
-import re
 import uuid
 from typing import Optional
 
-import markdown
 import pyttsx3
 
 from fastapi import FastAPI, Request, Response, UploadFile, status
@@ -55,14 +53,10 @@ async def ask(request: QuestionRequest):
     if department in ["Human Resources", "Finance", "IT"]:
         print(question, department, session_id)
         answer = answer_questions(question, department, session_id)
-        answer = convert_if_markdown(answer)
         store_session_history(session_id, question, answer)
     else:
         print(question, department, session_id)
         answer = "Invalid field selected."
-
-    # speak_answer(answer)
-    # threading.Thread(target=speak_answer, kwargs={"answer": answer}).start()
 
     return {"content": answer}
 
@@ -120,23 +114,6 @@ def speak_answer(answer):
     engine = pyttsx3.init()
     engine.say(answer)
     engine.runAndWait()
-
-
-def convert_if_markdown(text):
-    """As LLMs are trained on Markdown, using the below approach"""
-    markdown_patterns = [
-        r"\*\*.*?\*\*",  # bold
-        r"\*.*?\*",  # italic
-        r"^# .+",  # headings
-        r"\[.*?\]\(.*?\)",  # links
-        r"^[-*] .+",  # lists
-    ]
-
-    # Check if any Markdown patterns are found in the text
-    if any(re.search(pattern, text) for pattern in markdown_patterns):
-        return markdown.markdown(text)  # Convert to HTML
-    else:
-        return text  # Return as is if no Markdown is detected
 
 
 if __name__ == "__main__":

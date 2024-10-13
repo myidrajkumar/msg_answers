@@ -74,6 +74,21 @@ def get_doc_file_loader(filename):
     return loader
 
 
+def add_metadata_to_doc(file_name, payload, loader):
+    """Attaching Metadata"""
+
+    documents = loader.load()
+
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    for doc in documents:
+        doc.metadata["upload_date"] = current_time
+        doc.metadata["title"] = file_name
+        doc.metadata["version"] = payload.version
+        doc.metadata["tags"] = payload.tags
+
+    return documents
+
+
 class Payload(BaseModel):
     """Request Parameters"""
 
@@ -81,23 +96,32 @@ class Payload(BaseModel):
     tags: str
 
 
+def split_text(documents_list):
+    """Split the Document objects into smaller chunks."""
+
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
+    )
+
+    return text_splitter.split_documents(documents_list)
+
+
 def get_doc_directory_loader(file_path, category):
     """Get loader for documents"""
 
     documents = []
-
     payload = Payload(version="1.0", tags=category)
 
     for dir_path, _, files in os.walk(file_path):
         for available_file in files:
             file_name = os.path.join(dir_path, available_file)
-
             loader = get_doc_file_loader(file_name)
             if loader is None:
                 continue
 
-            documents = add_metadata_to_doc(available_file, payload, loader)
-            chunks = split_text(documents)
+            docs_with_meta = add_metadata_to_doc(available_file, payload, loader)
+            chunks = split_text(docs_with_meta)
             documents.extend(chunks)
 
     return documents
@@ -146,6 +170,20 @@ def load_documents_if_not_present():
     load_finance_document_if_not_present()
 
 
+def save_department_doc(doc_file, payload):
+    """Saving doc under department"""
+    filename = doc_file.filename
+    department_folder = get_folder_name(payload.department)
+
+    filename = "".join([department_folder, "/", filename])
+    pathlib.Path(filename).parent.mkdir(parents=True, exist_ok=True)
+
+    with open(filename, "wb+") as file_object:
+        shutil.copyfileobj(doc_file.file, file_object)
+
+    return filename
+
+
 def load_specific_doc(doc_file, payload):
     """Load specific doc"""
 
@@ -162,48 +200,6 @@ def load_specific_doc(doc_file, payload):
     db_name.add_documents(chunks)
 
     print(f"{filename} document is now loaded")
-
-
-def split_text(documents_list):
-    """Split the Document objects into smaller chunks."""
-
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=400,
-        chunk_overlap=100,
-        length_function=len,
-        add_start_index=True,
-    )
-
-    return text_splitter.split_documents(documents_list)
-
-
-def add_metadata_to_doc(file_name, payload, loader):
-    """Attaching Metadata"""
-
-    documents = loader.load()
-
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    for doc in documents:
-        doc.metadata["upload_date"] = current_time
-        doc.metadata["title"] = file_name
-        doc.metadata["version"] = payload.version
-        doc.metadata["tags"] = payload.tags
-
-    return documents
-
-
-def save_department_doc(doc_file, payload):
-    """Saving doc under department"""
-    filename = doc_file.filename
-    department_folder = get_folder_name(payload.department)
-
-    filename = "".join([department_folder, "/", filename])
-    pathlib.Path(filename).parent.mkdir(parents=True, exist_ok=True)
-
-    with open(filename, "wb+") as file_object:
-        shutil.copyfileobj(doc_file.file, file_object)
-
-    return filename
 
 
 def get_db_name(department):

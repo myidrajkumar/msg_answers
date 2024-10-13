@@ -3,6 +3,7 @@
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from langchain_chroma import Chroma
 from langchain_core.messages import AIMessage, HumanMessage
 
 from lllms_handling import initialize_llm
@@ -30,11 +31,11 @@ def store_session_history(session_id: str, question: str, answer: str):
     user_conversations[session_id] = conversation_history
 
 
-def get_retrieval_chain_for_db(department_db):
+def get_retrieval_chain_for_db(department_db: Chroma):
     """Get the retrieval chain"""
     prompt = get_question_prompt()
     chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
-    retriever = department_db.as_retriever(search__kwargs={"k": 3})
+    retriever = department_db.as_retriever(search__kwargs={"k": 1})
     retriever_prompt = get_retriever_prompt()
     history_aware_retriever = create_history_aware_retriever(
         llm=llm, retriever=retriever, prompt=retriever_prompt
