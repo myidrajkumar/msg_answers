@@ -11,7 +11,14 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from answers_handling import answer_questions
-from chromadb_load import load_documents_if_not_present, load_specific_doc
+from chromadb_load import (
+    delete_doc,
+    get_all_db_docs,
+    get_db_docs,
+    load_documents_if_not_present,
+    load_specific_doc,
+    update_doc,
+)
 from send_mail import send_email
 from vector_stores import get_session_history
 
@@ -104,6 +111,39 @@ def upload_file(file: UploadFile, department: str, version: str, tags: str):
 
     payload = FileRequestPayload(department=department, version=version, tags=tags)
     load_specific_doc(file, payload)
+    return {"message": "success"}
+
+
+@app.get("/list", status_code=status.HTTP_200_OK)
+def get_docs_list(department: Optional[str] = None):
+    """Getting docs list"""
+
+    if department is None:
+        docs = get_all_db_docs()
+    else:
+        docs = get_db_docs(department)
+
+    return {"data": docs, "message": "Success"}
+
+
+@app.post("/fileupdate")
+def update_file(file: UploadFile, department: str, version: str, tags: str):
+    """Uploading specific file"""
+
+    # check if the post request has the file part
+    if file.filename == "":
+        return {"error": "No selected file"}, 400
+
+    payload = FileRequestPayload(department=department, version=version, tags=tags)
+    update_doc(file, payload)
+    return {"message": "success"}
+
+
+@app.get("/filedelete")
+def delete_file(department: str, filename: str):
+    """Deleting specific file"""
+
+    delete_doc(department, filename)
     return {"message": "success"}
 
 

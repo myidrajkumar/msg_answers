@@ -184,6 +184,14 @@ def save_department_doc(doc_file, payload):
     return filename
 
 
+def delete_doc_from_folder(filename, department):
+    """Saving doc under department"""
+    department_folder = get_folder_name(department)
+
+    filename = "".join([department_folder, "/", filename])
+    os.remove(filename)
+
+
 def load_specific_doc(doc_file, payload):
     """Load specific doc"""
 
@@ -194,7 +202,7 @@ def load_specific_doc(doc_file, payload):
     if loader is None:
         return
 
-    documents = add_metadata_to_doc(doc_file, payload, loader)
+    documents = add_metadata_to_doc(doc_file.filename, payload, loader)
     chunks = split_text(documents)
 
     db_name.add_documents(chunks)
@@ -236,3 +244,64 @@ def get_db(department):
         return finance_db
     else:
         return None
+
+
+def get_all_db_docs():
+    """Getting all DB docs"""
+
+    hr_docs = get_embedding_metadata(hr_db)
+    hr_set = {metadata.get("title") for metadata in hr_docs["metadatas"]}
+
+    it_docs = get_embedding_metadata(it_db)
+    it_set = {metadata.get("title") for metadata in it_docs["metadatas"]}
+
+    finance_docs = get_embedding_metadata(finance_db)
+    finance_set = {metadata.get("title") for metadata in finance_docs["metadatas"]}
+
+    return {"HR": hr_set, "IT": it_set, "Finance": finance_set}
+
+
+def get_db_docs(department):
+    """Getting DB docs"""
+
+    doc_db = get_db(department)
+
+    db_docs = get_embedding_metadata(doc_db)
+    doc_set = {metadata.get("title") for metadata in db_docs["metadatas"]}
+
+    return {"docs": doc_set}
+
+
+def get_embedding_metadata(doc_db):
+    """Getting Embedding data"""
+    return doc_db._collection.get(include=["metadatas"])
+
+
+def update_doc(file, payload):
+    """Updating doc"""
+
+    doc_db = get_db(payload.department)
+    db_docs = get_embedding_metadata(doc_db)
+    document_id_set = {
+        metadata.get("title")
+        for metadata in db_docs["metadatas"]
+        if metadata.get("title") == file.filename
+    }
+
+    doc_db._collection.delete(ids=list(document_id_set))
+    load_specific_doc(file, payload)
+
+
+def delete_doc(department, filename):
+    """Deleing doc"""
+
+    doc_db = get_db(department)
+    db_docs = get_embedding_metadata(doc_db)
+    document_id_set = {
+        metadata.get("title")
+        for metadata in db_docs["metadatas"]
+        if metadata.get("title") == filename
+    }
+
+    doc_db._collection.delete(ids=list(document_id_set))
+    delete_doc_from_folder(department=department, filename=filename)
