@@ -7,8 +7,8 @@ from typing import Optional
 import markdown
 import pyttsx3
 
-from fastapi import FastAPI, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Response, UploadFile, status
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -67,8 +67,8 @@ async def ask(request: QuestionRequest):
     return {"content": answer}
 
 
-@app.post("/raiseconcernmail")
-def raise_concern(request: QuestionRequest):
+@app.post("/raiseconcernmail", status_code=status.HTTP_200_OK)
+def raise_concern(request: QuestionRequest, response: Response):
     """Sending concern"""
     try:
         department = request.department
@@ -90,7 +90,8 @@ def raise_concern(request: QuestionRequest):
 
     except Exception as e:
         print(f"Error: {e}")
-        return {"success": False, "message": "An error occurred"}, 500
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {"success": False, "message": "An error occurred"}
 
 
 class FileRequestPayload(BaseModel):
@@ -111,7 +112,7 @@ def upload_file(file: UploadFile, department: str, version: str, tags: str):
 
     payload = FileRequestPayload(department=department, version=version, tags=tags)
     load_specific_doc(file, payload)
-    return {"message": "success"}, 200
+    return {"message": "success"}
 
 
 def speak_answer(answer):
