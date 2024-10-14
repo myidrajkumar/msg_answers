@@ -91,7 +91,6 @@ async function submitField() {
         first_add = false
         while (true) {
             const { value, done } = await reader.read();
-            console.log('Received Value', value, 'Done', done);
             
             if(done) {
                 if (botMessageContent.toLowerCase().includes('out of my knowledge')) {

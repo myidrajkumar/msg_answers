@@ -246,17 +246,47 @@ def get_db(department):
         return None
 
 
+class DocFile(BaseModel):
+    """File Document"""
+
+    title: str
+    version: str
+    upload_date: str
+    tags: str
+
+
+def get_file_doc_from_metadata(metadata_list):
+    """Get file doc from metadata"""
+
+    seen_ids = set()
+    docfile_list = []
+
+    print("Metadata list \n", metadata_list)
+    for metadata in metadata_list:
+        docfile = DocFile(
+            title=metadata.get("title"),
+            version=metadata.get("version"),
+            upload_date=metadata.get("upload_date"),
+            tags=metadata.get("tags"),
+        )
+        if docfile.title not in seen_ids:
+            docfile_list.append(docfile)
+            seen_ids.add(docfile.title)
+
+    return docfile_list
+
+
 def get_all_db_docs():
     """Getting all DB docs"""
 
     hr_docs = get_embedding_metadata(hr_db)
-    hr_set = {metadata.get("title") for metadata in hr_docs["metadatas"]}
+    hr_set = get_file_doc_from_metadata(hr_docs["metadatas"])
 
     it_docs = get_embedding_metadata(it_db)
-    it_set = {metadata.get("title") for metadata in it_docs["metadatas"]}
+    it_set = get_file_doc_from_metadata(it_docs["metadatas"])
 
     finance_docs = get_embedding_metadata(finance_db)
-    finance_set = {metadata.get("title") for metadata in finance_docs["metadatas"]}
+    finance_set = get_file_doc_from_metadata(finance_docs["metadatas"])
 
     return {"HR": hr_set, "IT": it_set, "Finance": finance_set}
 
@@ -267,7 +297,7 @@ def get_db_docs(department):
     doc_db = get_db(department)
 
     db_docs = get_embedding_metadata(doc_db)
-    doc_set = {metadata.get("title") for metadata in db_docs["metadatas"]}
+    doc_set = get_file_doc_from_metadata(db_docs["metadatas"])
 
     return {"docs": doc_set}
 
@@ -288,7 +318,7 @@ def update_doc(file, payload):
         if metadata.get("title") == file.filename
     }
 
-    doc_db._collection.delete(ids=list(document_id_set))
+    doc_db._collection.delete(where={"title": list(document_id_set)[0]})
     load_specific_doc(file, payload)
 
 
@@ -303,5 +333,5 @@ def delete_doc(department, filename):
         if metadata.get("title") == filename
     }
 
-    doc_db._collection.delete(ids=list(document_id_set))
+    doc_db._collection.delete(where={"title": list(document_id_set)[0]})
     delete_doc_from_folder(department=department, filename=filename)
