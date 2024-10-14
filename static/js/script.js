@@ -85,32 +85,33 @@ async function submitField() {
 
         const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
         hideTypingIndicator();
-        appendingDiv = null
-
-        let botMessageContent = '';
+        appendingDiv = addBotMessage('');
         first_add = false
-        while (true) {
-            const { value, done } = await reader.read();
-            
-            if(done) {
-                if (botMessageContent.toLowerCase().includes('out of my knowledge')) {
-                    addConcernMessage();
-                } else {
-                    enableInput();
+        let botMessageContent = '';
+        // Read the stream
+        const readStream = () => {
+            reader.read().then(({ done, value }) => {
+                if(done) {
+                    if (botMessageContent.toLowerCase().includes('out of my knowledge')) {
+                        addConcernMessage();
+                    } else {
+                        enableInput();
+                    }
+                    return;
                 }
-                break;
-            } else {
-                if(!first_add) {
-                    appendingDiv = addBotMessage(value);
-                    first_add = true
-                    botMessageContent += value;
-                } else {
-                    botMessageContent += value;
-                    innerDiv = appendingDiv.querySelector('.message-content .bubble');
-                    innerDiv.innerHTML = botMessageContent;
-                }
-            }
-        }
+                botMessageContent += value; // Append the new part to the full message
+                appendingDiv.querySelector('.bubble').innerHTML = botMessageContent; // Display the updated message
+         
+                // Continue reading the stream
+                readStream();
+            }).catch(error => {
+                console.error("Stream reading error:", error);
+            });
+            };
+
+        // Start reading the stream
+        readStream();
+        enableInput();
 
     } catch (error) {
         hideTypingIndicator();
