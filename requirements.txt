@@ -10,3 +10,4 @@ unstructured
 python-pptx
 fastapi[all]
 jinja2
+msal
