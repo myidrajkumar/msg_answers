@@ -1,68 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSG Chat Bot</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="header-left">
-                <div class="avatar">
-                    <img src="{{ url_for('static', path='img/msg_logo.svg') }}" alt="MSG Global" title="MSG Global"/>
-                </div>                
-                <div class="chat-info">
-                    <h2>Assistant Bot</h2>
-                    <p id="department">Online</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <button class="btn btn-icon" onclick="toggleTheme()" aria-label="Toggle Theme" title="Theme">
-                    <i class="fas fa-moon" id="theme-icon"></i>
-                </button>
-                <button class="btn btn-icon" onclick="endChat()" aria-label="New Chat" title="New Chat">
-                    <i class="fas fa-comment"></i>
-                </button>
-            </div>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-            <div class="message bot-message">
-                <div class="avatar">
-                    <i class="fas fa-headset"></i>
-                </div>
-                <div class="message-content">
-                    <div class="bubble">
-                        <p>Welcome to MSG! I'm here to answer all your questions.</p>
-                        <p>Please select your department:</p>
-                        <div class="options">
-                            <button class="btn btn-option" onclick="handleFieldSelection('1')">Human Resources</button>
-                            <button class="btn btn-option" onclick="handleFieldSelection('2')">IT</button>
-                            <button class="btn btn-option" onclick="handleFieldSelection('3')">Finance</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <button id="scrollToTopIcon" class="floating-icon d-none" onclick="scrollToTop()" aria-label="Scroll to Top">
-            <i class="fas fa-arrow-up"></i>
-        </button>
-        <div class="chat-input">
-            <input type="text" id="question" placeholder="Type a message..." disabled 
-            onkeydown="if(event.key === 'Enter') submitField()">
-            <button class="btn btn-send" id="submitButton" onclick="submitField()" disabled title="Submit Button">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-        <div class="loading-overlay d-none" id="loading">
-            <div class="spinner">
-                <div class="spinner-inner"></div>
-            </div>
-        </div>
-    </div>
-    <script src="{{ url_for('static', path='js/script.js') }}"></script>
+    <script src="../static/dist/assistme.js" channelId="123" token="abc"></script>
 </body>
 </html>

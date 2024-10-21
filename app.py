@@ -51,7 +51,7 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 TENANT_ID = os.getenv("TENANT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
-SCOPE = os.getenv("SCOPE").split(",")
+# SCOPE = os.getenv("SCOPE").split(",")
 
 templates = Jinja2Templates(directory="templates")
 
@@ -67,6 +67,12 @@ users = {
     "mohammed.yusuf@msg-global.com": {"password": "123456", "role": "Finance Admin", "name" : "Yusuf"},
     "amitkumar.jha@msg-global.com": {"password": "123456", "role": "IT Admin", "name" : "Amit"},
 }
+
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request):
+    """Main Page"""
+    return templates.TemplateResponse(request=request, name="index.html")
+
 
 @app.post("/login")
 async def login(request: LoginRequest):
@@ -215,7 +221,7 @@ def delete_file(department: str, filename: str):
 
 if __name__ == "__main__":
     load_documents_if_not_present()
-
     import uvicorn
+    
 
-    uvicorn.run(app, host="0.0.0.0")
+    uvicorn.run(app, host="0.0.0.0", port=9000)
