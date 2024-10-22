@@ -3,12 +3,13 @@
   <head>
     <style>
       .temp-background-container {
-        background-image: url("../static/img/logo_msg_global_RGB.svg");
-        background-size: contain;
+        background-image: url(../static/img/temp.png);
+        background-size: cover; /* Ensures the image covers the entire screen */
         background-repeat: no-repeat;
         background-position: center;
-        width: 60%;
-        height: 100%;
+        width: 100%; /* Set width to 100% of the viewport */
+        height: 100vh; /* Set height to 100% of the viewport height */
+        overflow: hidden; /* Prevents any content from spilling out */
       }
     </style>
   </head>
