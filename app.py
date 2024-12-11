@@ -39,13 +39,13 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  
+    allow_methods=["*"],
     allow_headers=["*"],
 )
-VALID_CHANNEL_ID = '123' 
-VALID_TOKEN = 'abc'  
+VALID_CHANNEL_ID = "123"
+VALID_TOKEN = "abc"
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 TENANT_ID = os.getenv("TENANT_ID")
@@ -55,18 +55,37 @@ REDIRECT_URI = os.getenv("REDIRECT_URI")
 
 templates = Jinja2Templates(directory="templates")
 
+
 # Define request model
 class LoginRequest(BaseModel):
     username: str
     password: str
 
+
 # Hardcoded credentials for different roles
 users = {
-    "derren.dsouza@msg-global.com": {"password": "123456", "role": "Super Admin" , "name" : "Derren Dsouza"},
-    "anitha.kumareshan@msg-global.com": {"password": "123456", "role": "HR Admin", "name" : "Anitha"},
-    "mohammed.yusuf@msg-global.com": {"password": "123456", "role": "Finance Admin", "name" : "Yusuf"},
-    "amitkumar.jha@msg-global.com": {"password": "123456", "role": "IT Admin", "name" : "Amit"},
+    "derren.dsouza@msg-global.com": {
+        "password": "123456",
+        "role": "Super Admin",
+        "name": "Derren Dsouza",
+    },
+    "anitha.kumareshan@msg-global.com": {
+        "password": "123456",
+        "role": "HR Admin",
+        "name": "Anitha",
+    },
+    "mohammed.yusuf@msg-global.com": {
+        "password": "123456",
+        "role": "Finance Admin",
+        "name": "Yusuf",
+    },
+    "amitkumar.jha@msg-global.com": {
+        "password": "123456",
+        "role": "IT Admin",
+        "name": "Amit",
+    },
 }
+
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
@@ -80,7 +99,7 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     user = users[request.username]
-    
+
     if request.password != user["password"]:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -89,10 +108,12 @@ async def login(request: LoginRequest):
         "email": request.username,
         "role": user["role"],
     }
-    
+
+
 class TokenRequest(BaseModel):
     channelId: str
     token: str
+
 
 @app.post("/token")
 async def get_token():
@@ -213,7 +234,7 @@ def update_file(file: UploadFile, department: str, version: str, tags: str):
 def delete_file(department: str, filename: str):
     """Deleting specific file"""
 
-    if(department == "HR"):
+    if department == "HR":
         department = "Human Resources"
     delete_doc(department, filename)
     return {"message": "success"}
@@ -222,6 +243,5 @@ def delete_file(department: str, filename: str):
 if __name__ == "__main__":
     load_documents_if_not_present()
     import uvicorn
-    
 
     uvicorn.run(app, host="0.0.0.0", port=9000)

@@ -11,3 +11,4 @@ python-pptx
 fastapi[all]
 jinja2
 msal
+sentence-transformers
